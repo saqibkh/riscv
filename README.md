@@ -15,3 +15,12 @@ install path.
     $ ../configure --prefix=$RISCV
     $ make
     $ [sudo] make install
+
+Compiling and Running a Simple C Program
+-------------------------------
+
+Write a short C program and name it hello.c. Then, compile it into a RISC-V ELF binary named hello:
+    $ riscv64-unknown-elf-gcc -o hello hello.c
+
+Now you can simulate the program using:
+    $spike $(which pk) hello
