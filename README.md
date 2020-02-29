@@ -41,7 +41,9 @@ Inspect the output binary:
     $ riscv64-unknown-elf-readelf -a hello | less
     $ riscv64-unknown-elf-objdump -d hello | less
 
+Compile a test program using dynamically linked libraries
 
+    $ riscv64-unknown-linux-gnu-gcc -O2 -o hello hello.c
 
     
 
