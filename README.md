@@ -30,7 +30,7 @@ Now you can simulate the program using:
 Create an assembly program:
 
     $ riscv64-unknown-elf-gcc -O2 -S hello.c
-The "-O2" option is the code minimization/optimization technique
+    The "-O2" option is the code minimization/optimization technique
 
 Assemble and link with gcc/binutils:
 
