@@ -27,6 +27,7 @@ Now you can simulate the program using:
 
     $ spike $(which pk) hello
     
+
 Create an assembly program:
 
     $ riscv64-unknown-elf-gcc -O2 -S hello.c
@@ -45,7 +46,16 @@ Compile a test program using dynamically linked libraries
 
     $ riscv64-unknown-linux-gnu-gcc -O2 -o hello hello.c
 
-    
+
+From writing to running
+
+    $ riscv‐unknown‐elf‐gcc –S sum.c                 --> Compile
+    $ riscv‐unknown‐elf‐gcc –c sum.s                 --> Assemble
+    $ riscv‐unknown‐elf‐gcc –o sum sum.o             --> Link
+    $ qemu‐riscv64 sum                               --> Load
+
+
+
 Interactive Debug Mode
 -------------------------------
 
