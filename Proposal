@@ -1,4 +1,6 @@
-Things we could do as part of PhD.
+# Things we could do as part of PhD.
+
+====================================================================================================
 
 1) Implement various Control Flow Error (CFE) and Data Flow Error (DFE) detection techniques, 
    and look for ways to improve on those in terms of performance (Code Size / Execution Time)
