@@ -17,6 +17,8 @@ fi
 E_file=${C_file::-2}
 S_file="${E_file}.s"
 O_file="${E_file}.o"
+readelf_file="${E_file}.readelf"
+objdump_file="${E_file}.objdump"
 
 # Create an assembly file (.s)
 echo "riscv64-unknown-elf-gcc -S $C_file"
@@ -27,3 +29,8 @@ riscv64-unknown-elf-gcc -c $S_file
 # Link the obj file to create an executable
 echo "riscv64-unknown-elf-gcc -o $E_file $O_file"
 riscv64-unknown-elf-gcc -o $E_file $O_file
+
+echo "riscv64-unknown-elf-readelf -a ${E_file} > $readelf_file"
+riscv64-unknown-elf-readelf -a ${E_file} > $readelf_file
+echo "riscv64-unknown-elf-objdump -d ${E_file} > $objdump_file"
+riscv64-unknown-elf-objdump -d ${E_file} > $objdump_file
