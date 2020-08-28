@@ -56,7 +56,7 @@ From writing to running
 
 
 
-Interactive Debug Mode (Spike simulator: https://www.lowrisc.org/docs/tagged-memory-v0.1/spike/)
+Interactive Debug Mode
 -------------------------------
 
 To invoke interactive debug mode, launch spike with -d:
@@ -105,4 +105,9 @@ interactive debug mode with `<control>-<c>`.
 To end the simulation from the debug prompt, press `<control>-<c>` or:
 
     : q
+
+
+------------------------------------------------------------------------------------
+
+Python: /snap/bin/pycharm-community
 
