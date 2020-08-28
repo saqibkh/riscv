@@ -56,7 +56,7 @@ From writing to running
 
 
 
-Interactive Debug Mode
+Interactive Debug Mode (Spike simulator: https://www.lowrisc.org/docs/tagged-memory-v0.1/spike/)
 -------------------------------
 
 To invoke interactive debug mode, launch spike with -d:
