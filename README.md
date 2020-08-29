@@ -106,3 +106,8 @@ To end the simulation from the debug prompt, press `<control>-<c>` or:
 
     : q
 
+
+------------------------------------------------------------------------------------
+
+Python: /snap/bin/pycharm-community
+
