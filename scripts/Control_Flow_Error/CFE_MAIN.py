@@ -16,6 +16,7 @@ import datetime
 import random
 import subprocess
 import utils
+import cfcss
 import os
 
 from os import path
@@ -43,7 +44,7 @@ def main(argv):
     f_obj = utils.readfile(file)
     del file
 
-    map = utils.ControlFlowMap(f_asm, f_obj)
+    map = utils.ControlFlowMapRevised(f_asm, f_obj)
     # generate_CFCSS_file(map)
 
     return 0
