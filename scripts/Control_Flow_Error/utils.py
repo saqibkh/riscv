@@ -1,20 +1,24 @@
 #!/usr/bin/python
 
-import sys
+
 import logging
 import time
 import string
 import datetime
 import random
 import subprocess
+import re
 from os import path
 
-branch_instructions = ['b', 'bne', 'beq', 'blt', 'bge', 'bnez', 'j', 'jal', 'jr', 'ret']
+
+branch_unconditional_instructions = ['b', 'j', 'jal', 'jr', 'ret']
+branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez']
 
 
 ##
 # Description: This method will hold the entire Control Flow Graph (CFG)
 #               including the blocks, all incoming and outgoing threads
+
 
 class Function:
     def __init__(self, i_name):
@@ -29,12 +33,22 @@ class Function:
         self.instruction.append(i_instruction)
 
 
+class Functions:
+    def __init__(self):
+        self.f_names = []
+        self.f_instructions = []
+        self.f_outputs = []
+        self.f_inputs = []
+        self.f_calling_func = [[]]
+        self.f_addr = []
+
+
 class Blocks:
-    def __init__(self, i_name, i_id):
+    def __init__(self, i_func_name, i_id):
         self.id = i_id
-        self.inputs = []
-        self.outputs = []
-        self.func_name = i_name
+        self.previous_block_id = []
+        self.next_block_addr = []
+        self.func_name = i_func_name
         self.entries = []
         self.memory = []
         self.opcode = []
@@ -43,6 +57,7 @@ class Blocks:
         self.entries.append(entry)
 
 
+'''
 class ControlFlowMap:
 
     ##
@@ -107,6 +122,7 @@ class ControlFlowMap:
                         self.blocks[i].memory[j] = address
                         self.blocks[i].opcode[j] = opcode
                         break
+'''
 
 
 ##
@@ -142,8 +158,7 @@ class ControlFlowMapRevised:
         self.f_asm = i_asm
         self.f_obj = i_obj
         self.blocks = []
-        self.function_names = []
-        self.function_instructions = []
+        self.functions = Functions()
 
         ##
         # 1. Get all the function names from asm file so that we
@@ -153,21 +168,134 @@ class ControlFlowMapRevised:
         ##
         # 2. Get all the instructions that corresponds to a particular function
         #    from within the objdump file
-        for i in range(len(self.function_names)):
+        for i in range(len(self.functions.f_names)):
             self.get_function_data(i)
 
         ##
         # 3. Process the blocks within each function
-        for i in range(len(self.function_names)):
+        for i in range(len(self.functions.f_names)):
             self.generate_blocks(i)
 
         ##
         # 4. Process the blocks within each block
-        for i in range(len(self.function_names)):
+        for i in range(len(self.functions.f_names)):
             self.generate_extended_blocks()
 
+        ##
+        # 5. Get outputs to each block
+        self.get_calling_functions()
+        self.get_output_paths()
+
+        ##
+        # 6. Get inputs for each block
+        self.get_input_paths()
 
         print("Done")
+
+
+    def get_input_paths(self):
+
+        for i in range(len(self.blocks)):
+            for j in range(len(self.blocks[i].next_block_addr)):
+                i_block_id = self.find_block_with_addr(self.blocks[i].next_block_addr[j])
+                if(i_block_id != None):
+                    self.blocks[i].previous_block_id.append(i_block_id)
+
+
+
+    def find_block_with_addr(self, i_addr):
+        for i in range(len(self.blocks)):
+            for j in range(len(self.blocks[i].memory)):
+                line = self.blocks[i].memory[j]
+                if(i_addr == self.blocks[i].memory[j]):
+                    return self.blocks[i].id
+        return None
+
+    def get_calling_functions(self):
+        # We need to create a list with equal number of elements as the function_names
+        while(len(self.functions.f_names) != len(self.functions.f_calling_func)):
+            self.functions.f_calling_func.append([])
+
+        # Fills the self.functions.f_calling_func list with the function
+        #  names that the host function calls upon (Example <main> calls <subroutine>)
+        for i in range(len(self.functions.f_names)):
+            for j in range(len(self.functions.f_instructions[i].instruction)):
+                line = self.functions.f_instructions[i].instruction[j]
+                #line = 'j	10180 <countSetBits+0x30>'
+                if re.search('<.+>', line):
+                    calling_func = (((line.split('<')[1]).split('>')[0]).split('+')[0])
+                    self.functions.f_calling_func[i].append(calling_func)
+
+        # Clear all function names from the calling function that calls itself
+        # Also clear all function that are not user defined (i.e. skip external functions)
+        for i in range(len(self.functions.f_names)):
+            f_name = self.functions.f_names[i]
+
+            j = 0
+            while(j != len(self.functions.f_calling_func[i])):
+                if(f_name == self.functions.f_calling_func[i][j]):
+                    del self.functions.f_calling_func[i][j]
+                elif not self.is_valid_calling_function(self.functions.f_calling_func[i][j]):
+                    del self.functions.f_calling_func[i][j]
+                else:
+                    j+=1
+
+
+    def is_valid_calling_function(self, i_func):
+        # Check if the function given by i_func is a valid function that exists
+        # under self.functions.f_names
+        for i in range(len(self.functions.f_names)):
+            if(i_func == self.functions.f_names[i]):
+                return True
+        return False
+
+    def get_output_paths(self):
+        for i in range(len(self.blocks)):
+            i_line = self.blocks[i].entries[-1]  # Example: "j 0x12456"
+            i_inst = self.get_instruction(i_line)  # Example'j'
+
+            # Instruction could be of following types
+            # 1) unconditional --> only 1 return address in the last instruction
+            # 2) conditional --> 1 return address in last instruction  & 1 return address is last_instruction + opcode
+            # 3) not a branch instruction --> 1 return address is last_instruction + last_opcode
+            if i_inst in branch_unconditional_instructions:
+                # Need to return to the calling function
+                if (i_inst == 'ret'):
+                    i_call_funcs_addr = self.get_calling_function_addr_for_ret(self.blocks[i].func_name)
+                    # Add return address to output path
+                    for j in range(len(i_call_funcs_addr)):
+                        self.blocks[i].next_block_addr.append(i_call_funcs_addr[j])
+                    continue
+
+                return_addr = self.get_jump_address(i_line)
+                self.blocks[i].next_block_addr.append(return_addr)
+
+            elif i_inst in branch_conditional_instructions:
+                return_addr = self.get_jump_address(i_line)
+                self.blocks[i].next_block_addr.append(return_addr)
+                return_addr = hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))
+                self.blocks[i].next_block_addr.append(return_addr.split('0x')[1])
+
+            else:
+                return_addr = hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))
+                return_addr = return_addr.split('0x')[1]
+                self.blocks[i].next_block_addr.append(return_addr)
+
+
+    def get_calling_function_addr_for_ret(self, i_func):
+        # Check to see who can call this particular function and then return a list of functions that could
+        # potentially call it.
+        i_func_addr_list = []
+
+        for i in range(len(self.functions.f_names)):
+            for j in range(len(self.functions.f_calling_func[i])):
+                if self.functions.f_calling_func[i][j] == i_func:
+                    i_func_addr_list.append(self.functions.f_addr[i])
+        return i_func_addr_list
+
+    def get_instruction(self, i_line):
+        line = i_line.split('\t')[0]
+        return line
 
     def generate_extended_blocks(self):
 
@@ -176,7 +304,7 @@ class ControlFlowMapRevised:
             # branch to the middle of a block
             jmp_addr = self.get_jump_address(self.blocks[i].entries[-1])
 
-            if(jmp_addr == None):
+            if (jmp_addr == None):
                 continue
 
             create_new_block = True
@@ -186,16 +314,16 @@ class ControlFlowMapRevised:
 
                     line = self.blocks[j].memory[k]
                     # Found the memory address within the block
-                    if(self.blocks[j].memory[k] == jmp_addr):
+                    if (self.blocks[j].memory[k] == jmp_addr):
 
                         # First entry is the jump address (ALL GOOD!)
-                        if(k == 0):
+                        if (k == 0):
                             break
                         # Break the block
                         else:
-                            block = Blocks(len(self.blocks), len(self.blocks))
+                            block = Blocks(self.blocks[j].func_name, len(self.blocks))
 
-                            while(len(self.blocks[j].memory) != k):
+                            while (len(self.blocks[j].memory) != k):
                                 block.opcode.append(self.blocks[j].opcode[k])
                                 block.memory.append(self.blocks[j].memory[k])
                                 block.entries.append(self.blocks[j].entries[k])
@@ -207,30 +335,28 @@ class ControlFlowMapRevised:
                             self.blocks.append(block)
                             break
 
-
     def get_jump_address(self, i_line):
 
-        if((not self.is_branch_instruction(i_line)) or (i_line == 'ret')):
+        if ((not self.is_branch_instruction(i_line)) or (i_line == 'ret')):
             return
 
-
         i_inst, i_data = i_line.split('\t')
-        if(i_inst == 'j'):
+        if (i_inst == 'j'):
             return i_data.split(' ')[0]
-        elif(i_inst == 'bnez') or (i_inst == 'jal'):
+        elif (i_inst == 'bnez') or (i_inst == 'jal'):
             return (i_data.split(',')[1]).split(' ')[0]
         else:
             print('branch instruction not recognized ' + i_inst)
 
-
-    ##
-    # Description: Process the instructions defined within each function call
-    #              and breaks them down in to different blocks using branch instructions
-    #              to form the Control Flow Graph
     def generate_blocks(self, item):
-        i_ins_list = self.function_instructions[item]
+        #################################################################################################
+        ##
+        # Description: Process the instructions defined within each function call
+        #              and breaks them down in to different blocks using branch instructions
+        #              to form the Control Flow Graph
+        i_ins_list = self.functions.f_instructions[item]
 
-        block = Blocks(len(self.blocks), len(self.blocks))
+        block = Blocks(self.functions.f_names[item], len(self.blocks))
         for i in range(len(i_ins_list.instruction)):
             line = i_ins_list.instruction[i]
 
@@ -243,30 +369,30 @@ class ControlFlowMapRevised:
             # block and start a new block
             if self.is_branch_instruction(line):
                 self.blocks.append(block)
-                block = Blocks(len(self.blocks), len(self.blocks))
-
+                block = Blocks(self.functions.f_names[item], len(self.blocks))
 
     def is_branch_instruction(self, i_line):
         inst = i_line.split('\t')[0]
-        if (inst in branch_instructions):
+        if ((inst in branch_conditional_instructions) or (inst in branch_unconditional_instructions)):
             return True
         else:
             return False
 
-    ##
-    # Description: Gets all the instructions that are defined within a function call
-    #              and fills the self.function_instructions
     def get_function_data(self, item):
-        function = Function(self.function_names[item])
+        ##
+        # Description: Gets all the instructions that are defined within a function call
+        #              and fills the self.function_instructions
+        function = Function(self.functions.f_names[item])
         for j in range(len(self.f_obj)):
             if not self.f_obj[j].startswith('   '):
                 if (function.name in self.f_obj[j]):
+                    self.functions.f_addr.append(self.f_obj[j+1].strip().split(':')[0])
                     # Keep adding lines to the function until a new function starts
                     j += 1
                     while (1):
-                        line = self.f_obj[j]
+                        #line = self.f_obj[j]
                         if not self.f_obj[j].startswith('   '):
-                            self.function_instructions.append(function)
+                            self.functions.f_instructions.append(function)
                             return
 
                         address, opcode, instruction = self.f_obj[j].split('\t', 2)
@@ -275,10 +401,11 @@ class ControlFlowMapRevised:
                         function.addEntry(address, opcode, instruction)
                         j += 1
 
-    ##
-    # Description: Gets the function names from within the assembly file
-    #
     def get_function_names(self):
+        ##
+        # Description: Gets the function names from within the assembly file
+        #
+
         # Create a copy of self.f_asm
         i_asm = self.f_asm
 
@@ -288,8 +415,5 @@ class ControlFlowMapRevised:
             elif (i_asm[i].startswith('.')):
                 continue
             else:
-                self.function_names.append(i_asm[i].strip()[:-1])
+                self.functions.f_names.append(i_asm[i].strip()[:-1])
         del i_asm
-
-
-
