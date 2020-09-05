@@ -44,9 +44,15 @@ def main(argv):
     f_obj = utils.readfile(file)
     del file
 
+    # Create a Control Flow Graph
     map = utils.ControlFlowMapRevised(f_asm, f_obj)
-    # generate_CFCSS_file(map)
 
+    # Generate CFCSS (Control Flow Checking by Software Signature)
+    i_cfcss = cfcss.CFCSS(map)
+
+    with open('/home/saqib/riscv/benchmark_tests/bit_count/cfcss.s', 'w') as filehandle:
+        for listitem in i_cfcss.new_asm_file:
+            filehandle.write('%s\n' % listitem)
     return 0
 
 

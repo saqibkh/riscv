@@ -11,8 +11,11 @@ import re
 from os import path
 
 #
-branch_unconditional_instructions = ['b', 'j', 'jr', 'ret']
-branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'jal']
+branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
+branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez']
+
+# This address is where the program execution will jmp to in case the software signatures don't match
+exception_handler_address = '100'
 
 ''' Commonly used functions will be defined here'''
 
@@ -69,7 +72,10 @@ def get_jump_address(i_line):
 
     i_inst, i_data = i_line.split('\t')
     if i_inst in branch_unconditional_instructions:
-        return i_data.split(' ')[0]
+        if(i_inst == 'jal'): #jal     ra,1031c <printf>
+            return (i_data.split(',')[1]).split(' ')[0]
+        else:
+            return i_data.split(' ')[0]
     elif i_inst in branch_conditional_instructions:
         return (i_data.split(',')[1]).split(' ')[0]
     else:
@@ -184,6 +190,9 @@ class ControlFlowMapRevised:
         # 4. Process the blocks within each block
         for i in range(len(self.functions.f_names)):
             self.generate_extended_blocks()
+        # Fix the IDs of each block as we might have inserted new blocks
+        for i in range(len(self.blocks)):
+            self.blocks[i].id = i
 
         ##
         # 5. Get outputs to each block also called the next block
@@ -221,6 +230,7 @@ class ControlFlowMapRevised:
             for j in range(len(self.blocks[i].memory)):
                 line = self.blocks[i].memory[j]
                 if i_address == self.blocks[i].memory[j]:
+                    deleteme = self.blocks[i].id
                     return self.blocks[i].id
         return None
 
@@ -268,7 +278,12 @@ class ControlFlowMapRevised:
                     continue
 
                 return_addr = get_jump_address(i_line)
+
+                # Check if the function being called is defined or not.
                 if self.is_defined_address(return_addr):
+                    self.blocks[i].next_block_address.append(return_addr)
+                else:
+                    return_addr = (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
                     self.blocks[i].next_block_address.append(return_addr)
 
             elif i_inst in branch_conditional_instructions:
@@ -350,7 +365,7 @@ class ControlFlowMapRevised:
                             break
                         # Break the block
                         else:
-                            block = Block(self.blocks[j].func_name, len(self.blocks))
+                            block = Block(self.blocks[j].func_name, j+1)
 
                             while len(self.blocks[j].memory) != k:
                                 block.opcode.append(self.blocks[j].opcode[k])
@@ -361,7 +376,7 @@ class ControlFlowMapRevised:
                                 del self.blocks[j].entries[k]
 
                             # Add the block back into the Control Flow Graph
-                            self.blocks.append(block)
+                            self.blocks.insert(j+1, block)
                             break
 
     def generate_blocks(self, item):
