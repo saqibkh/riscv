@@ -14,6 +14,9 @@ from os import path
 branch_unconditional_instructions = ['b', 'j', 'jr', 'ret']
 branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'jal']
 
+# This address is where the program execution will jmp to in case the software signatures don't match
+exception_handler_address = '100'
+
 ''' Commonly used functions will be defined here'''
 
 
@@ -361,7 +364,7 @@ class ControlFlowMapRevised:
                                 del self.blocks[j].entries[k]
 
                             # Add the block back into the Control Flow Graph
-                            self.blocks.append(block)
+                            self.blocks.insert(j+1, block)
                             break
 
     def generate_blocks(self, item):
