@@ -17,6 +17,9 @@ branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez']
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'
 
+# This address is where the program execution will jmp to in case the software signatures don't match
+exception_handler_address = '100'
+
 ''' Commonly used functions will be defined here'''
 
 
