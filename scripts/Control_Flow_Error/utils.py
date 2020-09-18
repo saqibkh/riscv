@@ -15,7 +15,7 @@ branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
 branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez']
 
 # This address is where the program execution will jmp to in case the software signatures don't match
-exception_handler_address = '100'
+exception_handler_address = '100'  # --> 0x64
 
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'
@@ -75,7 +75,7 @@ def get_jump_address(i_line):
 
     i_inst, i_data = i_line.split('\t')
     if i_inst in branch_unconditional_instructions:
-        if(i_inst == 'jal'): #jal     ra,1031c <printf>
+        if (i_inst == 'jal'):  # jal     ra,1031c <printf>
             return (i_data.split(',')[1]).split(' ')[0]
         else:
             return i_data.split(' ')[0]
@@ -204,7 +204,8 @@ class ControlFlowMapRevised:
         # Also process the next_block_id
         for i in range(len(self.blocks)):
             for j in range(len(self.blocks[i].next_block_address)):
-                self.blocks[i].next_block_id.append(self.find_block_id_with_address(self.blocks[i].next_block_address[j]))
+                self.blocks[i].next_block_id.append(
+                    self.find_block_id_with_address(self.blocks[i].next_block_address[j]))
 
         ##
         # 6. Get inputs for each block also called the previous block
@@ -256,7 +257,8 @@ class ControlFlowMapRevised:
                 for j in range(len(self.functions.f_instructions[i].instruction)):
                     i_line = self.functions.f_instructions[i].instruction[j]
                     if i_func in i_line:
-                        i_return_address = hex(int(self.functions.f_instructions[i].address[j], 16) + int(len(self.functions.f_instructions[i].opcode[j]) / 2))
+                        i_return_address = hex(int(self.functions.f_instructions[i].address[j], 16) + int(
+                            len(self.functions.f_instructions[i].opcode[j]) / 2))
                         i_func_address_list.append(i_return_address.split('0x')[1])
         return i_func_address_list
 
@@ -286,7 +288,8 @@ class ControlFlowMapRevised:
                 if self.is_defined_address(return_addr):
                     self.blocks[i].next_block_address.append(return_addr)
                 else:
-                    return_addr = (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
+                    return_addr = \
+                    (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
                     self.blocks[i].next_block_address.append(return_addr)
 
             elif i_inst in branch_conditional_instructions:
@@ -294,7 +297,8 @@ class ControlFlowMapRevised:
                 if self.is_defined_address(return_addr):
                     self.blocks[i].next_block_address.append(return_addr)
 
-                return_addr = (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
+                return_addr = \
+                (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
                 if self.is_defined_address(return_addr):
                     self.blocks[i].next_block_address.append(return_addr)
 
@@ -368,7 +372,7 @@ class ControlFlowMapRevised:
                             break
                         # Break the block
                         else:
-                            block = Block(self.blocks[j].func_name, j+1)
+                            block = Block(self.blocks[j].func_name, j + 1)
 
                             while len(self.blocks[j].memory) != k:
                                 block.opcode.append(self.blocks[j].opcode[k])
@@ -379,7 +383,7 @@ class ControlFlowMapRevised:
                                 del self.blocks[j].entries[k]
 
                             # Add the block back into the Control Flow Graph
-                            self.blocks.insert(j+1, block)
+                            self.blocks.insert(j + 1, block)
                             break
 
     def generate_blocks(self, item):
