@@ -21,9 +21,11 @@ import os
 
 from os import path
 
+
 def usage():
     print("Usage: Please provide a test that has corresponding file names that matches <file>.s <file>.objdump")
-    print("Example ./TMMain.py bit_count    (Must have bit_count.s and bit_count.objdump files in the folder)")
+    print("Example ./TMMain.py src/dir/test/bit_count    (Must have bit_count.s and bit_count.objdump files in the "
+          "folder)")
 
 
 def main(argv):
@@ -50,7 +52,8 @@ def main(argv):
     # Generate CFCSS (Control Flow Checking by Software Signature)
     i_cfcss = cfcss.CFCSS(map)
 
-    with open('/home/saqib/riscv/benchmark_tests/bit_count/cfcss.s', 'w') as filehandle:
+    cfcss_file = argv[0] + '_cfcss.s'
+    with open(cfcss_file, 'w') as filehandle:
         for listitem in i_cfcss.new_asm_file:
             filehandle.write('%s\n' % listitem)
     return 0
