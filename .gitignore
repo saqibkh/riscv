@@ -3,3 +3,4 @@
 *.o
 *.objdump
 *.readelf
+*.idea
