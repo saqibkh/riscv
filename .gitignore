@@ -1,0 +1,5 @@
+*.log
+*.s
+*.o
+*.objdump
+*.readelf
