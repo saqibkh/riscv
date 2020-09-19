@@ -58,10 +58,13 @@ class CFCSS:
                 # Make sure the first instruction in asm function matches the first instruction in the block
                 # Get the first instruction in this particular block for comparison
                 i_line_block_obj = self.original_map.blocks[i_block].entries[0]
+                # i_line_block_asm could get multiple hits
                 i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
-                if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm:
-                    block_found = True
-                    del i_line_block_obj, i_line_block_asm
+                for i in range(len(i_line_block_asm)):
+                    if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm[i]:
+                        block_found = True
+                        del i_line_block_obj, i_line_block_asm
+                        break
 
             # 2. When a branch instruction is present within the function itself
             #    and the next instruction is the starting instruction of the next block
@@ -77,8 +80,10 @@ class CFCSS:
                         i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
                         try:
                             i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
-                            if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm:
-                                block_found = True
+                            for i in range(len(i_line_block_asm)):
+                                if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm[i]:
+                                    block_found = True
+                                    break
                         except:
                             #unexpected line encountered
                             i_line_num_new_asm_file += 1
@@ -118,6 +123,10 @@ class CFCSS:
 
             i_line_num_new_asm_file += 1
 
+        if i_block != len(self.original_map.blocks):
+            print('Failed to process all blocks. Currently at block id # ' + str(i_block))
+            raise Exception
+
     def generate_CFCSS_file(self):
         line_new_asm_file = 0
         line_obj = 0
@@ -128,7 +137,10 @@ class CFCSS:
         for i in range(len(self.original_map.blocks)):
             i_asm_instruction = None
             first_inst_in_block = self.original_map.blocks[i].entries[0]
-            last_inst_in_block = self.get_matching_asm_line_using_objdump_line(self.original_map.blocks[i].entries[-1])
+            last_inst_in_block = self.get_matching_asm_line_using_objdump_line(self.original_map.blocks[i].entries[-1])[0]
+            if len(i_line_block_asm) != 1:
+                print('We found multiple matches of this particular instruction in the asm/obj mapping file')
+                raise Exception
 
             # 2. Find the corresponding objdump instruction in the objdump file
             while line_instruction_map < len(self.instruction_map[0]):
@@ -177,15 +189,14 @@ class CFCSS:
         # Definition: Checks for a matching line in the objdump file and returns the
         #             corresponding asm line
         line_instruction_map = 0
+        list_matching_objects = []
+
         while line_instruction_map < len(self.instruction_map[0]):
             if i_line == self.instruction_map[1][line_instruction_map]:
                 i_asm_instruction = self.instruction_map[0][line_instruction_map]
-                return i_asm_instruction
-            else:
-                line_instruction_map += 1
-
-        print('Can\'t find corresponding asm line')
-        return None
+                list_matching_objects.append(i_asm_instruction)
+            line_instruction_map += 1
+        return list_matching_objects
 
     def process_CFCSS_blocks(self):
 
