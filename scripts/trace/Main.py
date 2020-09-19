@@ -43,9 +43,9 @@ def main(argv):
 
     # Generate logs
     spike = testlib.Spike(file)
-    spike.generate_logs()
-    spike.generate_extended_logs()
-    #spike.generate_extended_debug_logs()
+    #spike.generate_logs()
+    #spike.generate_extended_logs()
+    spike.generate_extended_debug_logs()
 
 ##
 # Description: Check if the given file exists in the directory

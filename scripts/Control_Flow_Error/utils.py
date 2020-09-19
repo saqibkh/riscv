@@ -12,7 +12,7 @@ from os import path
 
 #
 branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
-branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez']
+branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble']
 
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
@@ -80,7 +80,8 @@ def get_jump_address(i_line):
         else:
             return i_data.split(' ')[0]
     elif i_inst in branch_conditional_instructions:
-        return (i_data.split(',')[1]).split(' ')[0]
+        # Example 'blt a5,a4,1019e <bubbleSort+0x18>'
+        return (i_data.split(' ')[0]).split(',')[-1]
     else:
         print('branch instruction not recognized ' + i_inst)
         raise Exception
