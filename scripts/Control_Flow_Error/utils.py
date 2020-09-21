@@ -87,6 +87,59 @@ def get_jump_address(i_line):
         raise Exception
 
 
+def generate_instruction_mapping(self):
+    # Definition: This creates a 1-1 mapping between instructions in .s file and .objdump file
+    instruction_map_asm = []
+    instruction_map_obj = []
+
+    # Process the instructions in .s file first
+    for i in range(len(self.original_map.functions.f_names)):
+        f_name = self.original_map.functions.f_names[i]
+        for j in range(len(self.original_map.file_asm)):
+            i_line = self.original_map.file_asm[j]
+            if not i_line.startswith(f_name):
+                continue
+            # Found the start of the function definition in .s file
+            j += 1
+            while True:
+
+                try:
+                    i_line = self.original_map.file_asm[j]
+                except Exception as e:
+                    # print('Reached end of file')
+                    break
+                if is_instruction_asm(i_line):
+                    instruction_map_asm.append(i_line.split('\t', 1)[1])
+                j += 1
+                # Check when a new function begins so we can exit this loop
+                if not (i_line.startswith('.') or i_line.startswith('\t')):
+                    finish_function = True
+                    break
+            if finish_function:
+                finish_function = False
+                break
+
+    # Now Process the instructions in .objdump file
+    for i in range(len(self.original_map.functions.f_names)):
+        for j in range(len(self.original_map.functions.f_instructions[i].instruction)):
+            instruction_map_obj.append(self.original_map.functions.f_instructions[i].instruction[j])
+
+    # Form a 2-dimensional array with instructions from both .s and .obj file
+    if len(instruction_map_asm) != len(instruction_map_obj):
+        print('Number of instructions is not the same in both .s and .obj file')
+        raise Exception
+    self.instruction_map = [instruction_map_asm, instruction_map_obj]
+
+
+def is_instruction_asm(i_line):
+    # Definition: checks if the provided line is a valid instruction in the asm file
+    if not i_line.startswith('\t'):
+        return False
+    i_line = i_line.strip('\t')
+    if i_line.startswith('.'):
+        return False
+    return True
+
 ''' End of commonly defined functions'''
 
 ''' Start of class definitions'''
@@ -290,7 +343,8 @@ class ControlFlowMapRevised:
                     self.blocks[i].next_block_address.append(return_addr)
                 else:
                     return_addr = \
-                    (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
+                        (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[
+                            1]
                     self.blocks[i].next_block_address.append(return_addr)
 
             elif i_inst in branch_conditional_instructions:
@@ -299,7 +353,7 @@ class ControlFlowMapRevised:
                     self.blocks[i].next_block_address.append(return_addr)
 
                 return_addr = \
-                (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
+                    (hex(int(self.blocks[i].memory[-1], 16) + int(len(self.blocks[i].opcode[-1]) / 2))).split('0x')[1]
                 if self.is_defined_address(return_addr):
                     self.blocks[i].next_block_address.append(return_addr)
 

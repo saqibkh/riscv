@@ -19,6 +19,7 @@ import subprocess
 import compileUtil
 import utils
 import cfcss
+import yacca
 import os
 
 from os import path
@@ -54,16 +55,19 @@ def main(argv):
     # Create a Control Flow Graph
     map = utils.ControlFlowMapRevised(f_asm, f_obj)
 
+    '''
     # Generate CFCSS (Control Flow Checking by Software Signature)
     i_cfcss = cfcss.CFCSS(map)
-
     cfcss_file = argv[0].rsplit('.')[0] + '_cfcss.s'
     with open(cfcss_file, 'w') as filehandle:
         for listitem in i_cfcss.new_asm_file:
             filehandle.write('%s\n' % listitem)
-
-    ''' Compile the newly created assembly file to generate a static binary '''
+    # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(cfcss_file)
+    '''
+
+    i_yacca = yacca.YACCA(map)
+
 
     return 0
 
