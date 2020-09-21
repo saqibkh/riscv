@@ -87,7 +87,6 @@ class YACCA:
                     M1 *= -1
                 self.M1[i] = M1
 
-
     def generate_M2(self):
         for i in range(len(self.original_map.blocks)):
             # For blocks that are end blocks i.e. has no outgoing blocks, we don't need to get M2
@@ -111,9 +110,6 @@ class YACCA:
                 M1_i = self.M1[i]
                 B_i = self.compile_time_sig[i]
                 self.M2[i] = (B_pred1 & M1_i) ^ B_i
-
-
-
 
     def generate_YACCA_file_updated(self):
         return
