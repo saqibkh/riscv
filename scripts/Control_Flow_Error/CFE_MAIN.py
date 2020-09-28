@@ -20,6 +20,7 @@ import compileUtil
 import utils
 import cfcss
 import yacca
+import ecca
 import os
 
 from os import path
@@ -67,9 +68,16 @@ def main(argv):
     '''
 
     i_yacca = yacca.YACCA(map)
+    yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
+    with open(yacca_file, 'w') as filehandle:
+        for listitem in i_yacca.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(yacca_file)
 
 
-    return 0
+    #i_ecca = ecca.ECCA(map)
+
 
 
 if __name__ == "__main__":

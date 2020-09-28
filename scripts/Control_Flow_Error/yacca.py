@@ -60,6 +60,81 @@ class YACCA:
         return
 
     ''' Beginning of class function definitions '''
+    def generate_YACCA_file_updated(self):
+        i_block = 0
+        i_line_num_new_asm_file = 0
+
+        # 1. Loop the asm file lines until the end of file
+        while i_line_num_new_asm_file < len(self.new_asm_file):
+
+            # Return once all the blocks are processed
+            if i_block == len(self.original_map.blocks):
+                return
+
+            block_found = False
+            i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file]
+
+            # A basic block will start when the line matches the first line of that particular block
+            if i_line_asm.startswith('\t'):
+                i_line_asm = i_line_asm.split('\t', 1)[1]
+                if not i_line_asm.startswith('.'):
+                    i_line_block_obj = self.original_map.blocks[i_block].entries[0]
+                    i_line_block_asm = utils.get_matching_asm_line_using_objdump_line(self.instruction_map,
+                                                                                      i_line_block_obj)
+                    try:
+                        i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1]
+                        for i in range(len(i_line_block_asm)):
+                            if self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1] == \
+                                    i_line_block_asm[i]:
+                                block_found = True
+
+                                del i_line_block_obj, i_line_block_asm, i_line_asm
+                                break
+                    except Exception as e:
+                        # unexpected line encountered
+                        i_line_num_new_asm_file += 1
+                        continue
+
+
+            if block_found:
+
+                # For initial basic block we need to load the run-time signature == compile-time signature
+                if len(self.original_map.blocks[i_block].previous_block_id) == 0:
+                    inst_mov_s11_sig = '\tli\ts11,' + str(self.compile_time_sig[i_block])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, inst_mov_s11_sig)
+                    i_line_num_new_asm_file += 1
+
+                inst_mov_s10_prev = '\tli\ts10,' + str(self.previous[i_block])
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_mov_s10_prev)
+                i_line_num_new_asm_file += 1
+
+                inst_modulo = '\tremu\ts9,s10,s11'
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_modulo)
+                i_line_num_new_asm_file += 1
+
+                inst_branch_sig_check = '\tbnez\ts9,' + utils.exception_handler_address
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_branch_sig_check)
+                i_line_num_new_asm_file += 1
+
+                # Get to the last instruction in the block and then add the extended signature
+                for i in range(len(self.original_map.blocks[i_block].entries) - 1):
+                    i_line_num_new_asm_file += 1
+
+                # If there are no outputs blocks then don't add an extended signature (M1 and M2)
+                if len(self.original_map.blocks[i_block].next_block_id) != 0:
+                    if self.M1[i_block] is not None:
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tand\ts11,s11,' + str(self.M1[i_block]))
+                        i_line_num_new_asm_file += 1
+
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' + str(self.M2[i_block]))
+
+                # Finish processing the block
+                i_block += 1
+
+            i_line_num_new_asm_file += 1
+
+
+
     def generate_Previous(self):
         for i in range(len(self.original_map.blocks)):
             # Take care of case where there is no incoming block (i.e. Main())
@@ -110,8 +185,5 @@ class YACCA:
                 M1_i = self.M1[i]
                 B_i = self.compile_time_sig[i]
                 self.M2[i] = (B_pred1 & M1_i) ^ B_i
-
-    def generate_YACCA_file_updated(self):
-        return
 
     ''' End of class definitions '''
