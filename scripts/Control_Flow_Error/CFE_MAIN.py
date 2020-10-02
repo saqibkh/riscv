@@ -67,6 +67,7 @@ def main(argv):
     compileUtil.compile_s(cfcss_file)
     '''
 
+    '''
     i_yacca = yacca.YACCA(map)
     yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
     with open(yacca_file, 'w') as filehandle:
@@ -74,9 +75,16 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(yacca_file)
+    '''
 
 
-    #i_ecca = ecca.ECCA(map)
+    i_ecca = ecca.ECCA(map)
+    ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
+    with open(ecca_file, 'w') as filehandle:
+        for listitem in i_ecca.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(ecca_file)
 
 
 
