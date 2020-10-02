@@ -98,9 +98,9 @@ class YACCA:
 
             if block_found:
 
-                # For initial basic block we need to load the run-time signature == compile-time signature
+                # For initial basic block we need to load 1 into s11
                 if len(self.original_map.blocks[i_block].previous_block_id) == 0:
-                    inst_mov_s11_sig = '\tli\ts11,' + str(self.compile_time_sig[i_block])
+                    inst_mov_s11_sig = '\tli\ts11,1'
                     self.new_asm_file.insert(i_line_num_new_asm_file, inst_mov_s11_sig)
                     i_line_num_new_asm_file += 1
 
@@ -156,11 +156,18 @@ class YACCA:
             if len(self.original_map.blocks[i].previous_block_id) == 2:
                 sig_1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
                 sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
-                M1 = ~(sig_1 ^ sig_2)
-                # Flip the sign if M1 is negative
-                if(M1 < 0):
-                    M1 *= -1
-                self.M1[i] = M1
+
+                if sig_1 > sig_2:
+                    M1 = bin((sig_1))
+                else:
+                    M1 = bin((sig_2))
+
+                negate = '0b'
+                for j in range(len(M1) - 2):
+                    negate = negate + '1'
+
+                M1 = bin((sig_1 ^ sig_2) ^ int(negate, 2))
+                self.M1[i] = int(M1,2)
 
     def generate_M2(self):
         for i in range(len(self.original_map.blocks)):
@@ -185,5 +192,9 @@ class YACCA:
                 M1_i = self.M1[i]
                 B_i = self.compile_time_sig[i]
                 self.M2[i] = (B_pred1 & M1_i) ^ B_i
+
+            elif len(self.original_map.blocks[i].previous_block_id) > 2:
+                print('We have a problem here as we have more than 2 incoming branches')
+                raise Exception
 
     ''' End of class definitions '''

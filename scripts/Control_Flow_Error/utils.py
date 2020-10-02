@@ -12,7 +12,7 @@ from os import path
 
 #
 branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
-branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble']
+branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble', 'bltz']
 
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
