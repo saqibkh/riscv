@@ -21,6 +21,7 @@ import utils
 import cfcss
 import yacca
 import ecca
+import rscfc
 import os
 
 from os import path
@@ -77,7 +78,7 @@ def main(argv):
     compileUtil.compile_s(yacca_file)
     '''
 
-
+    '''
     i_ecca = ecca.ECCA(map)
     ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
     with open(ecca_file, 'w') as filehandle:
@@ -85,6 +86,17 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(ecca_file)
+    '''
+
+    i_rscfc = rscfc.RSCFC(map)
+    rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
+    with open(rscfc_file, 'w') as filehandle:
+        for listitem in i_rscfc.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(rscfc_file)
+
+
 
 
 
