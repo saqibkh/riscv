@@ -76,7 +76,6 @@ class RSCFC:
                         continue
 
             if block_found:
-
                 # 0. S = s_i & (S XNOR L_i) & (-!N)
 
                 # For initial basic block we need to load 1 into s11 which
@@ -88,44 +87,53 @@ class RSCFC:
 
                 # 1. AND the runtime signature with the compile time signature and make sure the result
                 #    not equal to zero
-                inst_AND_s11_compile_sig = '\tand\ts11,s11,' + str(int(self.L_i[i_block],2))
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts9,' + str(int(self.L_i[i_block],2)))
+                i_line_num_new_asm_file += 1
+                inst_AND_s11_compile_sig = '\tand\ts11,s11,s9'
                 self.new_asm_file.insert(i_line_num_new_asm_file, inst_AND_s11_compile_sig)
                 i_line_num_new_asm_file += 1
                 inst_AND_COMP_EQ_ZERO = '\tbeqz\ts11,' + utils.exception_handler_address
                 self.new_asm_file.insert(i_line_num_new_asm_file, inst_AND_COMP_EQ_ZERO)
                 i_line_num_new_asm_file += 1
 
-                # 2. Load the cummulative signature N into register s10
-                inst_cumm_sig_N = '\tand\ts10,s10,' + str(int(self.m_i[i_block],2))
-                self.new_asm_file.insert(i_line_num_new_asm_file, inst_cumm_sig_N)
-                i_line_num_new_asm_file += 1
-
-                # 3. This section implements the intra-block part of RSCFC.
-                #
-                for i in range(len(self.original_map.blocks[i_block].entries)):
-                    # We can't check the final branch instruction in he basic block
-                    if utils.is_branch_instruction(self.original_map.file_asm[i_line_num_new_asm_file]):
-                        break
-
-                    i_line_num_new_asm_file += 1
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts10,s10,' + str(int(1<<i)))
+                # Don't need to check for cummulative signature anymore as this is the end block
+                if len(self.original_map.blocks[i_block].next_block_id) > 0:
+                    # 2. Load the cummulative signature N into register s10
+                    inst_cumm_sig_N = '\tli\ts10,' + str(int(self.m_i[i_block],2))
+                    self.new_asm_file.insert(i_line_num_new_asm_file, inst_cumm_sig_N)
                     i_line_num_new_asm_file += 1
 
-                # 4. Check the cummulative signature and then update the run-time signature
-                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' + str(int(self.L_i[i_block],2)))
-                i_line_num_new_asm_file += 1
-                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,-1')
-                i_line_num_new_asm_file += 1
-                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts10,s10,-1')
-                i_line_num_new_asm_file += 1
-                self.new_asm_file.insert(i_line_num_new_asm_file, '\tand\ts11,s11,s10')
-                i_line_num_new_asm_file += 1
+                    # 3. This section implements the intra-block part of RSCFC.
+                    #
+                    for i in range(len(self.original_map.blocks[i_block].entries)):
+                        # We can't check the final branch instruction in he basic block
+                        if utils.is_branch_instruction(self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[-1]):
+                            break
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts9,' + str(int(1 << i)))
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts10,s10,s9')
+                        i_line_num_new_asm_file += 1
 
-                # We will store the expected compile time sig in s10 temporarily
-                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(int(self.compile_time_sig[i_block],2)))
-                i_line_num_new_asm_file += 1
-                inst_AND_COMP_EQ_ZERO = '\tbeq\ts11,s10,' + utils.exception_handler_address
-                i_line_num_new_asm_file += 1
+                    # 4. Check the cummulative signature and then update the run-time signature
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts9,' + str(int(self.L_i[i_block], 2)))
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s9')
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,-1')
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts10,s10,-1')
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tand\ts11,s11,s10')
+                    i_line_num_new_asm_file += 1
+
+                    # We will store the expected compile time sig in s10 temporarily
+                    x = str(int(self.compile_time_sig[i_block],2))
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(int(self.compile_time_sig[i_block],2)))
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file,
+                                             '\tbeq\ts11,s10,' + utils.exception_handler_address)
+                    i_line_num_new_asm_file += 1
 
                 # Finish processing the block
                 i_block += 1
@@ -186,9 +194,4 @@ class RSCFC:
                     # Therefore, we are not going to add another bit in the cumulative signature.
                     continue
 
-            # Make sure there are more than 1 instructions in the basic block.
-            # If there is only one instruction, then there is no need to check for intra-block CFE.
-            if len(cum_sig) >= 4:
-                self.m_i[i] = cum_sig
-            else:
-                self.m_i[i] = None
+            self.m_i[i] = cum_sig
