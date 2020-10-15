@@ -37,7 +37,102 @@ class RSCFC:
         self.generate_CFG_Locator()
         self.generate_compile_Sig()
 
+        self.generate_RSCFC_file_updated()
+
     ''' Beginning of class function definitions '''
+    def generate_RSCFC_file_updated(self):
+        i_block = 0
+        i_line_num_new_asm_file = 0
+
+        # 1. Loop the asm file lines until the end of file
+        while i_line_num_new_asm_file < len(self.new_asm_file):
+
+            # Return once all the blocks are processed
+            if i_block == len(self.original_map.blocks):
+                return
+
+            block_found = False
+            i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file]
+
+            # A basic block will start when the line matches the first line of that particular block
+            if i_line_asm.startswith('\t'):
+                i_line_asm = i_line_asm.split('\t', 1)[1]
+                if not i_line_asm.startswith('.'):
+                    i_line_block_obj = self.original_map.blocks[i_block].entries[0]
+                    i_line_block_asm = utils.get_matching_asm_line_using_objdump_line(self.instruction_map,
+                                                                                      i_line_block_obj)
+                    try:
+                        i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1]
+                        for i in range(len(i_line_block_asm)):
+                            if self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1] == \
+                                    i_line_block_asm[i]:
+                                block_found = True
+
+                                del i_line_block_obj, i_line_block_asm, i_line_asm
+                                break
+                    except Exception as e:
+                        # unexpected line encountered
+                        i_line_num_new_asm_file += 1
+                        continue
+
+            if block_found:
+
+                # 0. S = s_i & (S XNOR L_i) & (-!N)
+
+                # For initial basic block we need to load 1 into s11 which
+                # is the register that will hold the run-time S.
+                if len(self.original_map.blocks[i_block].previous_block_id) == 0:
+                    inst_mov_s11_sig = '\tli\ts11,1'
+                    self.new_asm_file.insert(i_line_num_new_asm_file, inst_mov_s11_sig)
+                    i_line_num_new_asm_file += 1
+
+                # 1. AND the runtime signature with the compile time signature and make sure the result
+                #    not equal to zero
+                inst_AND_s11_compile_sig = '\tand\ts11,s11,' + str(int(self.L_i[i_block],2))
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_AND_s11_compile_sig)
+                i_line_num_new_asm_file += 1
+                inst_AND_COMP_EQ_ZERO = '\tbeqz\ts11,' + utils.exception_handler_address
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_AND_COMP_EQ_ZERO)
+                i_line_num_new_asm_file += 1
+
+                # 2. Load the cummulative signature N into register s10
+                inst_cumm_sig_N = '\tand\ts10,s10,' + str(int(self.m_i[i_block],2))
+                self.new_asm_file.insert(i_line_num_new_asm_file, inst_cumm_sig_N)
+                i_line_num_new_asm_file += 1
+
+                # 3. This section implements the intra-block part of RSCFC.
+                #
+                for i in range(len(self.original_map.blocks[i_block].entries)):
+                    # We can't check the final branch instruction in he basic block
+                    if utils.is_branch_instruction(self.original_map.file_asm[i_line_num_new_asm_file]):
+                        break
+
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts10,s10,' + str(int(1<<i)))
+                    i_line_num_new_asm_file += 1
+
+                # 4. Check the cummulative signature and then update the run-time signature
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' + str(int(self.L_i[i_block],2)))
+                i_line_num_new_asm_file += 1
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,-1')
+                i_line_num_new_asm_file += 1
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts10,s10,-1')
+                i_line_num_new_asm_file += 1
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\tand\ts11,s11,s10')
+                i_line_num_new_asm_file += 1
+
+                # We will store the expected compile time sig in s10 temporarily
+                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(int(self.compile_time_sig[i_block],2)))
+                i_line_num_new_asm_file += 1
+                inst_AND_COMP_EQ_ZERO = '\tbeq\ts11,s10,' + utils.exception_handler_address
+                i_line_num_new_asm_file += 1
+
+                # Finish processing the block
+                i_block += 1
+
+            i_line_num_new_asm_file += 1
+
+
     def generate_compile_Sig(self):
         # Get the base/original compile time signature for all basic branches.
         # If there are n basic blocks in the CFG, the signature is n+1 bits wide
@@ -49,7 +144,6 @@ class RSCFC:
         for i in range(len(self.original_map.blocks)):
             self.compile_time_sig[i] = i_basic_sig
 
-
         # Loop through the basic blocks to set the correct compile time signature
         for i in range(len(self.original_map.blocks)):
 
@@ -59,15 +153,13 @@ class RSCFC:
                 self.compile_time_sig[i] = None
 
             i_current_block_sig = self.compile_time_sig[i]  # .split('0b')[-1]
-            #2. For all remaining blocks, the bits of the successor blocks are set to 1
+            # 2. For all remaining blocks, the bits of the successor blocks are set to 1
             for j in range(len(self.original_map.blocks[i].next_block_id)):
                 i_next_block_sig = self.L_i[self.original_map.blocks[i].next_block_id[j]]
-                i_current_block_sig = bin(int(i_current_block_sig,2) | int(i_next_block_sig,2))
+                i_current_block_sig = bin(int(i_current_block_sig, 2) | int(i_next_block_sig, 2))
 
             # Write the compile_time sig back to the list
             self.compile_time_sig[i] = i_current_block_sig
-        print('Here')
-
 
     def generate_CFG_Locator(self):
         next_L_i = '0b10'
@@ -78,7 +170,6 @@ class RSCFC:
             else:
                 self.L_i[i] = next_L_i
                 next_L_i += '0'
-
 
     def generate_cumulative_sig(self):
         for i in range(len(self.original_map.blocks)):
@@ -101,6 +192,3 @@ class RSCFC:
                 self.m_i[i] = cum_sig
             else:
                 self.m_i[i] = None
-
-
-
