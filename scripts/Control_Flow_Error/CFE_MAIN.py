@@ -15,6 +15,8 @@ import string
 import datetime
 import random
 import subprocess
+import os
+from os import path
 
 import compileUtil
 import utils
@@ -22,9 +24,7 @@ import cfcss
 import yacca
 import ecca
 import rscfc
-import os
-
-from os import path
+import trial1
 
 
 def usage():
@@ -88,6 +88,7 @@ def main(argv):
     compileUtil.compile_s(ecca_file)
     '''
 
+    '''
     i_rscfc = rscfc.RSCFC(map)
     rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
     with open(rscfc_file, 'w') as filehandle:
@@ -95,6 +96,16 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(rscfc_file)
+    '''
+
+    i_trial1 = trial1.TRIAL1(map)
+    trial1_file = argv[0].rsplit('.')[0] + '_trial1.s'
+    with open(trial1_file, 'w') as filehandle:
+        for listitem in i_trial1.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(trial1_file)
+
 
 
 
