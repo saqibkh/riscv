@@ -104,6 +104,14 @@ class TRIAL1:
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' + str(int(self.original_map.blocks[i_block].opcode[i][-2:], 16)))
                     i_line_num_new_asm_file += 2
 
+                # We need to update the extended signature variable at the end of each block
+                i_line_num_new_asm_file -= 1
+                if self.extended_signature[i_block] != None:
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + self.extended_signature[i_block])
+                else:
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0')
+                i_line_num_new_asm_file += 2
+
                 # Finish processing the block
                 i_block += 1
                 i_line_num_new_asm_file -= 1
