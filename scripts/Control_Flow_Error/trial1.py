@@ -88,7 +88,7 @@ class TRIAL1:
                 # Need to check the run-time signature
                 else:
                     # Update the run_time signature with any possible extended signature
-                    if len(self.original_map.blocks[i_block].previous_block_id) >= 1:
+                    if len(self.original_map.blocks[i_block].previous_block_id) > 1:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
                         i_line_num_new_asm_file += 1
                     # Check the run_time signature now
