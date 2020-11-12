@@ -91,10 +91,12 @@ class TRIAL1:
                     if len(self.original_map.blocks[i_block].previous_block_id) > 1:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
                         i_line_num_new_asm_file += 1
+
                     # Check the run_time signature now
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + self.compile_time_sig[i_block])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
+                                             str(int(self.compile_time_sig[self.original_map.blocks[i_block].previous_block_id[0]],16)))
                     i_line_num_new_asm_file += 1
-                    self.new_asm_file.insert(i_line_num_new_asm_file,'\tbne\ts11,s10,'+utils.exception_handler_address)
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\ts11,'+utils.exception_handler_address)
                     i_line_num_new_asm_file += 1
 
                 # Add the XOR instruction before each real instruction. This is important because we
