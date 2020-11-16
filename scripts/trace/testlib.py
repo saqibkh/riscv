@@ -50,7 +50,7 @@ class Spike(object):
 
     def generate_logs(self):
         """Generates the stdout from running a binary."""
-        fout = open(self.binary + ".log", "w+")
+        fout = open(self.binary + ".log", "wb+")
         cmd = 'spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect(['%', pexpect.EOF])
@@ -58,7 +58,7 @@ class Spike(object):
 
     def generate_extended_logs(self):
         """Generates the instruction traces from running a binary."""
-        fout = open(self.binary + "_extended.log", "w+")
+        fout = open(self.binary + "_extended.log", "wb+")
         cmd = 'spike -l /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
         self.child = pexpect.spawn(cmd, logfile=fout, timeout=3600) #3600s==60min
         self.child.expect(['%', pexpect.EOF])
@@ -68,18 +68,26 @@ class Spike(object):
     def generate_extended_debug_logs(self):
         """Generates instruction traces along with SPR and GPR data."""
         # Command: spike -d $(which pk) <file>
-        fout = open(self.binary + "_extended_debug.log", "w+")
+        fout = open(self.binary + "_extended_debug.log", "wb+")
         cmd = 'spike -d /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect([':', pexpect.EOF])
 
+        counter = 0
         try:
             while(1):
                 self.get_pc()
                 self.get_registers()
                 self.step_one_instruction()
+                counter += 1
+
+                # Generate a log for the console, so that the user will know that the process is still running
+                if counter == 10000:
+                    counter = 0
+                    print("Still processing logs")
+
         except Exception as e:
-            print "error"
+            print("error")
             fout.close()
 
     def wait(self):

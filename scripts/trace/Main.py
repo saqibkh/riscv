@@ -14,12 +14,11 @@ import unittest
 import tempfile
 import time
 import sys
-import pexpect
 
 from os import path
 
 def usage():
-    print("Usage: Please provide a assembly file")
+    print("Usage: Please provide a assembly file or an executable file")
     print("Example ./Main.py bit_count.S")
 
 def main(argv):
@@ -43,9 +42,18 @@ def main(argv):
 
     # Generate logs
     spike = testlib.Spike(file)
-    #spike.generate_logs()
-    #spike.generate_extended_logs()
+
+    print("\nGenerating log file.")
+    spike.generate_logs()
+    print("Log file generated!\n")
+
+    print("\nGenerating Extending log file. Please wait!")
+    spike.generate_extended_logs()
+    print("Extended log file generated!\n")
+
+    print("\nGenerating Extending Debug log file. Please wait longer!")
     spike.generate_extended_debug_logs()
+    print("Extended debug log file generated!\n")
 
 ##
 # Description: Check if the given file exists in the directory
