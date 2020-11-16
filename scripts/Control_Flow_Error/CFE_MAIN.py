@@ -32,7 +32,6 @@ def usage():
     print("Usage: Please provide the absolute path for a C program that matches <file>.c")
     print("Example ./CFE_Main.py src/dir/test/bit_count.c --enable-compile (Must have the entire path to the source file")
 
-
 def main(argv):
     l_enable_extras = False
 
@@ -75,7 +74,8 @@ def main(argv):
         for listitem in i_cfcss.new_asm_file:
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
-    compileUtil.compile_s(cfcss_file)
+    if l_enable_extras:
+        compileUtil.compile_s(cfcss_file)
 
     i_yacca = yacca.YACCA(map)
     yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
@@ -83,7 +83,8 @@ def main(argv):
         for listitem in i_yacca.new_asm_file:
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
-    compileUtil.compile_s(yacca_file)
+    if l_enable_extras:
+      compileUtil.compile_s(yacca_file)
 
     i_ecca = ecca.ECCA(map)
     ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
@@ -91,7 +92,8 @@ def main(argv):
         for listitem in i_ecca.new_asm_file:
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
-    compileUtil.compile_s(ecca_file)
+    if l_enable_extras:
+        compileUtil.compile_s(ecca_file)
 
     i_rscfc = rscfc.RSCFC(map)
     rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
@@ -99,7 +101,8 @@ def main(argv):
         for listitem in i_rscfc.new_asm_file:
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
-    compileUtil.compile_s(rscfc_file)
+    if l_enable_extras:
+        compileUtil.compile_s(rscfc_file)
 
     i_trial1 = trial1.TRIAL1(map)
     trial1_file = argv[0].rsplit('.')[0] + '_trial1.s'
@@ -107,7 +110,8 @@ def main(argv):
         for listitem in i_trial1.new_asm_file:
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
-    compileUtil.compile_s(trial1_file)
+    if l_enable_extras:
+        compileUtil.compile_s(trial1_file)
 
 
 
