@@ -73,18 +73,11 @@ class Spike(object):
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect([':', pexpect.EOF])
 
-        counter = 0
         try:
             while(1):
                 self.get_pc()
                 self.get_registers()
                 self.step_one_instruction()
-                counter += 1
-
-                # Generate a log for the console, so that the user will know that the process is still running
-                if counter == 10000:
-                    counter = 0
-                    print("Still processing logs")
 
         except Exception as e:
             print("error")

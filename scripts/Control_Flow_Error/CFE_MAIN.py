@@ -13,6 +13,7 @@ import logging
 import time
 import string
 import datetime
+import getopt
 import random
 import subprocess
 import os
@@ -28,14 +29,23 @@ import trial1
 
 
 def usage():
-    print("Usage: Please provide a C program that matches <file>.c")
-    print("Example ./CFE_Main.py src/dir/test/bit_count.c    (Must have the entire path to the source file")
+    print("Usage: Please provide the absolute path for a C program that matches <file>.c")
+    print("Example ./CFE_Main.py src/dir/test/bit_count.c --enable-compile (Must have the entire path to the source file")
 
 
 def main(argv):
+    l_enable_extras = False
+
     if len(sys.argv) == 1:
         usage()
         sys.exit()
+
+
+    if len(sys.argv) > 2:
+        "Check for any more parameters"
+        for i in range(len(argv) - 1):
+            if argv[i+1] == '--enable-extras':
+                l_enable_extras = True
 
     file_c = argv[0]
     ''' Create an assembly file and an objdump file from the C program file provided to us '''
@@ -57,7 +67,7 @@ def main(argv):
     # Create a Control Flow Graph
     map = utils.ControlFlowMapRevised(f_asm, f_obj)
 
-    '''
+
     # Generate CFCSS (Control Flow Checking by Software Signature)
     i_cfcss = cfcss.CFCSS(map)
     cfcss_file = argv[0].rsplit('.')[0] + '_cfcss.s'
@@ -66,9 +76,7 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(cfcss_file)
-    '''
 
-    '''
     i_yacca = yacca.YACCA(map)
     yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
     with open(yacca_file, 'w') as filehandle:
@@ -76,9 +84,7 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(yacca_file)
-    '''
 
-    '''
     i_ecca = ecca.ECCA(map)
     ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
     with open(ecca_file, 'w') as filehandle:
@@ -86,9 +92,7 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(ecca_file)
-    '''
 
-    '''
     i_rscfc = rscfc.RSCFC(map)
     rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
     with open(rscfc_file, 'w') as filehandle:
@@ -96,7 +100,6 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(rscfc_file)
-    '''
 
     i_trial1 = trial1.TRIAL1(map)
     trial1_file = argv[0].rsplit('.')[0] + '_trial1.s'
@@ -105,9 +108,6 @@ def main(argv):
             filehandle.write('%s\n' % listitem)
     # Compile the newly created assembly file to generate a static binary
     compileUtil.compile_s(trial1_file)
-
-
-
 
 
 
