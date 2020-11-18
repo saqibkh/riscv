@@ -50,6 +50,7 @@ class Spike(object):
     def __init__(self, i_binary):
         """Launch spike. Return tuple of its process and the port it's running on."""
         self.binary = i_binary
+        self.last_pc = '0x0000000000000000'
 
     def generate_logs(self):
         """Generates the stdout from running a binary."""
@@ -108,7 +109,12 @@ class Spike(object):
 
     def get_pc(self):
         self.child.sendline("pc 0")
-        self.wait()
+        self.child.readline()
+        i_current_pc = self.child.readline().decode("utf-8").strip()
+        if self.last_pc == i_current_pc:
+            raise Exception
+        else:
+            self.last_pc = i_current_pc
 
     def step_one_instruction(self):
         self.child.sendline("r 1")
