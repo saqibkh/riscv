@@ -111,11 +111,8 @@ class Spike(object):
         self.child.readline()
         i_current_pc = self.child.readline().decode("utf-8").strip()
         if self.last_pc == i_current_pc:
-<<<<<<< HEAD
             print("PC hasn't incremented since last instruction. Therefore stop simulation now!")
             sys.stdout.flush()
-=======
->>>>>>> 56b4e9d23ae521b401f48076356e3dee31132e2c
             raise Exception
         else:
             self.last_pc = i_current_pc
