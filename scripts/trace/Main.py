@@ -35,7 +35,7 @@ def main(argv):
         return 1
 
     # Check if it is an executable file or an assembly file that needs to be compiled first
-    if (file.endswith(".s") || file.endswith(".c")):
+    if (file.endswith(".s") or file.endswith(".c")):
         print("Input file is either an assembly file or a c file that needs to be compiled first")
         file = testlib.compile(file)
     else:
