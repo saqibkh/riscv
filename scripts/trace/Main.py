@@ -100,11 +100,7 @@ def checkFileExists(filename):
 # Input: filename (String)
 # Output: boolean
 def checkPathExists(i_path):
-    try:
-        pathlib.Path(i_path).mkdir(parents=True, exist_ok=True)
-    except Exception as e:
-        print("Error with the given path")
-        return 1
+    pathlib.Path(i_path).mkdir(parents=True, exist_ok=True)
 
 
 
