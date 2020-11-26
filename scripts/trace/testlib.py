@@ -47,23 +47,25 @@ def find_file(path):
 
 class Spike(object):
 
-    def __init__(self, i_binary):
+    def __init__(self, i_binary, i_output_dir):
         """Launch spike. Return tuple of its process and the port it's running on."""
-        self.binary = i_binary
+        self.file_path = i_binary
+        self.file_name = i_binary.split('/')[-1]
+        self.output_dir = i_output_dir
         self.last_pc = '0x0000000000000000'
 
     def generate_logs(self):
         """Generates the stdout from running a binary."""
-        fout = open(self.binary + ".log", "wb+")
-        cmd = '/opt/riscv/bin/spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
+        fout = open(self.output_dir + '/' + self.file_name + ".log", "wb+")
+        cmd = '/opt/riscv/bin/spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.file_path
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect(['%', pexpect.EOF])
         fout.close()
 
     def generate_extended_logs(self):
         """Generates the instruction traces from running a binary."""
-        fout = open(self.binary + "_extended.log", "wb+")
-        cmd = '/opt/riscv/bin/spike -l /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
+        fout = open(self.output_dir + self.file_name + "_extended.log", "wb+")
+        cmd = '/opt/riscv/bin/spike -l /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.file_path
         self.child = pexpect.spawn(cmd, logfile=fout, timeout=3600)  # 3600s==60min
         self.child.expect(['%', pexpect.EOF])
         fout.close()
@@ -71,8 +73,8 @@ class Spike(object):
     def generate_extended_debug_logs(self):
         """Generates instruction traces along with SPR and GPR data."""
         # Command: spike -d $(which pk) <file>
-        fout = open(self.binary + "_extended_debug.log", "wb+")
-        cmd = '/opt/riscv/bin/spike -d /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.binary
+        fout = open(self.output_dir + self.file_name + "_extended_debug.log", "wb+")
+        cmd = '/opt/riscv/bin/spike -d /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + self.file_path
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect([':', pexpect.EOF])
 
