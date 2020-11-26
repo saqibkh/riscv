@@ -61,7 +61,7 @@ def main(argv):
     checkPathExists(l_outout_dir)
 
     # Check if it is an executable file or an assembly file that needs to be compiled first
-    if l_file.endswith(".s") or file.endswith(".c"):
+    if l_file.endswith(".s") or l_file.endswith(".c"):
         print("Input file is either an assembly file or a c file that needs to be compiled first")
         l_file = testlib.compile(l_file)
     else:
@@ -102,7 +102,7 @@ def checkFileExists(filename):
 def checkPathExists(i_path):
     try:
         pathlib.Path(i_path).mkdir(parents=True, exist_ok=True)
-    except Error as e:
+    except Exception as e:
         print("Error with the given path")
         return 1
 
