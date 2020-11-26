@@ -94,14 +94,17 @@ def main(argv):
 def checkFileExists(filename):
     return path.exists(filename)
 
+
 ##
 # Description: Check if the given path exists, if not then try to mkdir
 #
 # Input: filename (String)
 # Output: boolean
 def checkPathExists(i_path):
-    pathlib.Path(i_path).mkdir(parents=True, exist_ok=True)
-
+    try:
+        pathlib.Path(i_path).mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        return
 
 
 if __name__ == "__main__":
