@@ -9,7 +9,21 @@ import datetime
 import random
 import subprocess
 import re
+import glob
 from os import path
+
+
+# This function looks in the directory given by l_dir and then deletes all the objdump readelf and .o files
+# that starts with l_filename
+def delete_all_useless_files(l_dir, l_filename):
+    i_list = ['*.o', '*.readelf', '*.objdump']
+    for element in i_list:
+        fileList = glob.glob(l_dir + '/' + element)
+        for filePath in fileList:
+            try:
+                os.remove(filePath)
+            except:
+                print("Error while deleting file : ", filePath)
 
 
 def compile_c(file):

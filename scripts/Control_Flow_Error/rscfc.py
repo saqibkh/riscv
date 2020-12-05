@@ -39,6 +39,8 @@ class RSCFC:
 
         self.generate_RSCFC_file_updated()
 
+        print("Finished processing RSCFC")
+
     ''' Beginning of class function definitions '''
     def generate_RSCFC_file_updated(self):
         i_block = 0

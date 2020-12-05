@@ -62,6 +62,8 @@ class ECCA:
         # Generate the new assembly file
         self.generate_ECCA_file_updated()
 
+        print("Finished processing ECCA")
+
     ''' Beginning of class function definitions '''
     def generate_ECCA_file_updated(self):
         i_block = 0

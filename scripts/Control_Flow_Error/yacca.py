@@ -57,6 +57,7 @@ class YACCA:
 
         self.generate_YACCA_file_updated()
 
+        print("Finished processing YACCA")
         return
 
     ''' Beginning of class function definitions '''

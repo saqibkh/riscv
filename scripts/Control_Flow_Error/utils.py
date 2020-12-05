@@ -279,10 +279,10 @@ class ControlFlowMapRevised:
         # 6. Get inputs for each block also called the previous block
         self.get_input_paths()
 
-        print("Successfully created the Control Flow Graph")
-        '''                                                                     '''
-        '''               END OF CONTROL FLOW GRAPH PROCESSING                  '''
-        '''                                                                     '''
+        #print("Successfully created the Control Flow Graph")
+        #'''                                                                     '''
+        #'''               END OF CONTROL FLOW GRAPH PROCESSING                  '''
+        #'''                                                                     '''
 
     def is_defined_address(self, i_address):
         # Definition: Checks all the function instructions to see if the address provided is defined within

@@ -43,6 +43,8 @@ class TRIAL1:
         # Generate the new assembly file
         self.generate_TRIAL1_file_updated()
 
+        print("Finished processing TRIAL1")
+
     ''' Beginning of class function definitions '''
     def generate_TRIAL1_file_updated(self):
         i_block = 0
