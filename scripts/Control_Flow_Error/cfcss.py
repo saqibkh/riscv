@@ -232,12 +232,12 @@ class CFCSS:
                 # Get the signature of the first incoming block
                 predesessor_block_id_1 = self.original_map.blocks[i].previous_block_id[0]
                 D_sign = self.compile_time_sig[predesessor_block_id_1]
+
                 for j in range(len(self.original_map.blocks[i].previous_block_id) - 1):
                     predesessor_block_id_next = self.original_map.blocks[i].previous_block_id[j+1]
-                    D_sign ^= self.compile_time_sig[predesessor_block_id_next]
                     # Get the ID of the incoming blocks
                     incoming_block_id = self.original_map.blocks[i].previous_block_id[j+1]
-                    self.D_sig[incoming_block_id] = D_sign
+                    self.D_sig[incoming_block_id] = D_sign ^ self.compile_time_sig[predesessor_block_id_next]
         print('Finished processing CFCSS.')
 
     def get_signature_based_on_id(self, i_id):
