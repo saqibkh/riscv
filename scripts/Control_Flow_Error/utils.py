@@ -482,8 +482,9 @@ class ControlFlowMapRevised:
         #              and fills the self.function_instructions
         function = Instructions(self.functions.f_names[item])
         for j in range(len(self.file_obj)):
+            line = self.file_obj[j]
             if not self.file_obj[j].startswith('   '):
-                if function.name in self.file_obj[j]:
+                if ("<" + function.name + ">") in self.file_obj[j]:
                     self.functions.f_address.append(self.file_obj[j + 1].strip().split(':')[0])
                     # Keep adding lines to the function until a new function starts
                     j += 1
