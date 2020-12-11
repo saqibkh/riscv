@@ -154,6 +154,46 @@ def is_instruction_asm(i_line):
         return False
     return True
 
+
+def swap(a, b):
+    temp = a
+    a = b
+    b = temp
+
+
+def xnor(a, b):
+    # Make sure a is larger
+    if a < b:
+        swap(a, b)
+
+    if a == 0 and b == 0:
+        return 1
+
+    # for last bit of a and b
+    a_rem = 0
+    b_rem = 0
+
+    count = 0  # counter for count bit and set bit in xnor num
+    xnornum = 0  # for make new xnor number
+
+    # for set bits in new xnor
+    # number
+    while a != 0:
+        # get last bit of a and b
+        a_rem = a & 1
+        b_rem = b & 1
+
+        # Check if current two bits are same
+        if a_rem == b_rem:
+            xnornum |= (1 << count)
+
+        count = count + 1
+
+        a = a >> 1
+        b = b >> 1
+    return xnornum
+
+
 ''' End of commonly defined functions'''
 
 ''' Start of class definitions'''
@@ -279,10 +319,10 @@ class ControlFlowMapRevised:
         # 6. Get inputs for each block also called the previous block
         self.get_input_paths()
 
-        #print("Successfully created the Control Flow Graph")
-        #'''                                                                     '''
-        #'''               END OF CONTROL FLOW GRAPH PROCESSING                  '''
-        #'''                                                                     '''
+        # print("Successfully created the Control Flow Graph")
+        # '''                                                                     '''
+        # '''               END OF CONTROL FLOW GRAPH PROCESSING                  '''
+        # '''                                                                     '''
 
     def is_defined_address(self, i_address):
         # Definition: Checks all the function instructions to see if the address provided is defined within

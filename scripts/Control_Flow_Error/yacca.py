@@ -147,28 +147,40 @@ class YACCA:
                 self.previous.append(self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]])
 
             # Block with 2 incoming blocks
-            else:
+            elif len(self.original_map.blocks[i].previous_block_id) == 2:
                 sig_1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
                 sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
                 self.previous.append(sig_1 * sig_2)
 
-    def generate_M1(self):
-        for i in range(len(self.original_map.blocks)):
-            if len(self.original_map.blocks[i].previous_block_id) == 2:
+            elif len(self.original_map.blocks[i].previous_block_id) == 3:
                 sig_1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
                 sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
+                sig_3 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[2]]
+                self.previous.append(sig_1 * sig_2 * sig_3)
 
-                if sig_1 > sig_2:
-                    M1 = bin((sig_1))
-                else:
-                    M1 = bin((sig_2))
+            else:
+                print("Too many incoming blocks to generate the \"Previous\" Value")
+                raise Exception
 
-                negate = '0b'
-                for j in range(len(M1) - 2):
-                    negate = negate + '1'
 
-                M1 = bin((sig_1 ^ sig_2) ^ int(negate, 2))
-                self.M1[i] = int(M1,2)
+    def generate_M1(self):
+        for i in range(len(self.original_map.blocks)):
+            if len(self.original_map.blocks[i].previous_block_id) < 2:
+                continue
+
+            elif len(self.original_map.blocks[i].previous_block_id) == 2:
+                sig_1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
+                sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
+                self.M1[i] = utils.xnor(sig_1, sig_2)
+
+            elif len(self.original_map.blocks[i].previous_block_id) == 3:
+                sig_1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
+                sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
+                sig_3 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[2]]
+                self.M1[i] = utils.xnor(utils.xnor(sig_1, sig_2), sig_3)
+            else:
+                print("Too many incoming blocks to generate the \"M1\" Value")
+                raise Exception
 
     def generate_M2(self):
         for i in range(len(self.original_map.blocks)):
@@ -187,7 +199,7 @@ class YACCA:
                 B_i = self.compile_time_sig[i]
                 self.M2[i] = B_pred1 ^ B_i
 
-            elif len(self.original_map.blocks[i].previous_block_id) == 2:
+            elif len(self.original_map.blocks[i].previous_block_id) >= 2:
                 # M2 = (B_pred1 AND M1_i) Exclusive OR B_i
                 B_pred1 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
                 M1_i = self.M1[i]
