@@ -320,14 +320,14 @@ class ControlFlowMapRevised:
         i_func_address_list = []
 
         for i in range(len(self.functions.f_instructions)):
-            # Skip the function if same as i_func
-            if self.functions.f_instructions[i].name != i_func:
-                for j in range(len(self.functions.f_instructions[i].instruction)):
-                    i_line = self.functions.f_instructions[i].instruction[j]
-                    if i_func in i_line:
-                        i_return_address = hex(int(self.functions.f_instructions[i].address[j], 16) + int(
-                            len(self.functions.f_instructions[i].opcode[j]) / 2))
-                        i_func_address_list.append(i_return_address.split('0x')[1])
+            for j in range(len(self.functions.f_instructions[i].instruction)):
+                i_line = self.functions.f_instructions[i].instruction[j]
+
+                # Make sure the function being called is a full function (i.e. not a child function like .L1, .L5 etc)
+                if ('<' + i_func + '>') in i_line:
+                    i_return_address = hex(int(self.functions.f_instructions[i].address[j], 16) + int(
+                        len(self.functions.f_instructions[i].opcode[j]) / 2))
+                    i_func_address_list.append(i_return_address.split('0x')[1])
         return i_func_address_list
 
     def get_output_paths(self):
