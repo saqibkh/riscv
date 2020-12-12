@@ -246,6 +246,8 @@ class CFCSS:
                 return self.compile_time_sig[i]
 
     def generate_instruction_mapping(self):
+        finish_function = False
+
         # Definition: This creates a 1-1 mapping between instructions in .s file and .objdump file
         instruction_map_asm = []
         instruction_map_obj = []
