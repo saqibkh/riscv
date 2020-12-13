@@ -160,6 +160,7 @@ class YACCA:
 
             else:
                 print("Too many incoming blocks to generate the \"Previous\" Value")
+                print("Number of blocks = " + str(len(self.original_map.blocks[i].previous_block_id)))
                 raise Exception
 
 
