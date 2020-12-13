@@ -89,7 +89,7 @@ class ECCA:
                     try:
                         i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1]
                         for i in range(len(i_line_block_asm)):
-                            if self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1] == \
+                            if self.original_map.file_asm[i_line_num_new_asm_file].split('\t', 1)[1] in \
                                     i_line_block_asm[i]:
                                 block_found = True
 

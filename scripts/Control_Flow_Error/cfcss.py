@@ -61,7 +61,7 @@ class CFCSS:
                 # i_line_block_asm could get multiple hits
                 i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
                 for i in range(len(i_line_block_asm)):
-                    if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm[i]:
+                    if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] in i_line_block_asm[i]:
                         block_found = True
                         del i_line_block_obj, i_line_block_asm
                         break
