@@ -184,7 +184,7 @@ class ECCA:
         # loop until we fill the compile time variable list
         while len(self.BID) != len(self.original_map.blocks):
             # Get a random number
-            i_num = random.sample(range(3, (len(self.BID) * 4) + 10), 1)[0]
+            i_num = random.sample(range(3, (len(self.BID) * 5) + 10), 1)[0]
             # Check if it is prime number
             if isPrime(i_num):
                 # Check if the number already exists in the list. If not, then add to the list
