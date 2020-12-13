@@ -98,8 +98,9 @@ class RSCFC:
                 self.new_asm_file.insert(i_line_num_new_asm_file, inst_AND_COMP_EQ_ZERO)
                 i_line_num_new_asm_file += 1
 
-                # Don't need to check for cummulative signature anymore as this is the end block
-                if len(self.original_map.blocks[i_block].next_block_id) > 0:
+                # Don't need to check for cummulative signature anymore as this is the end block or
+                # if there is only 1 inst within the block and if that inst is a branch instruction (i.e. m_i = ob)
+                if (len(self.original_map.blocks[i_block].next_block_id) > 0) and self.m_i[i_block] != '0b':
                     # 2. Load the cummulative signature N into register s10
                     inst_cumm_sig_N = '\tli\ts10,' + str(int(self.m_i[i_block],2))
                     self.new_asm_file.insert(i_line_num_new_asm_file, inst_cumm_sig_N)
