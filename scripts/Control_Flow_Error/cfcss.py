@@ -81,8 +81,6 @@ class CFCSS:
                         try:
                             i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
                             for i in range(len(i_line_block_asm)):
-
-                                #i_line_block_asm = i_line_block_asm[i].split(';')
                                 if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] in i_line_block_asm[i]:
                                     block_found = True
                                     break
