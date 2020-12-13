@@ -501,7 +501,12 @@ class ControlFlowMapRevised:
         # Description: Process the instructions defined within each function call
         #              and breaks them down in to different blocks using branch instructions
         #              as delimiters to form the Control Flow Graph
-        i_ins_list = self.functions.f_instructions[item]
+        try:
+            i_ins_list = self.functions.f_instructions[item]
+        except:
+            # This function name has no instructions attacked to it. Thus remove it from the list
+            del self.functions.f_names[item]
+            return
 
         block = Block(self.functions.f_names[item], len(self.blocks))
         for i in range(len(i_ins_list.instruction)):
