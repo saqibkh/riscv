@@ -187,11 +187,13 @@ class YACCA:
                 sig_2 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[1]]
                 sig_3 = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[2]]
                 self.M1[i] = utils.xnor(utils.xnor(sig_1, sig_2), sig_3)
+
             elif len(self.original_map.blocks[i].previous_block_id) >= 4:
                 sig = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[0]]
                 for j in range(len(self.original_map.blocks[i].previous_block_id) - 1):
                     sig_next = self.compile_time_sig[self.original_map.blocks[i].previous_block_id[j+1]]
                     sig = utils.xnor(sig,sig_next)
+                self.M1[i] = sig
 
             else:
                 print("Too many incoming blocks to generate the \"M1\" Value.")
@@ -200,6 +202,7 @@ class YACCA:
 
     def generate_M2(self):
         for i in range(len(self.original_map.blocks)):
+
             # For blocks that are end blocks i.e. has no outgoing blocks, we don't need to get M2
             if len(self.original_map.blocks[i].next_block_id) == 0:
                 continue
