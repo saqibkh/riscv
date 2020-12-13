@@ -126,6 +126,33 @@ def generate_instruction_mapping(self):
         for j in range(len(self.original_map.functions.f_instructions[i].instruction)):
             instruction_map_obj.append(self.original_map.functions.f_instructions[i].instruction[j])
 
+            # The .s file might have more instruction than the obj file.
+            if len(instruction_map_asm) != len(instruction_map_obj):
+                i_inst = 0
+                while i_inst != len(instruction_map_obj):
+                    # Once we get the same lengths for both list then return
+                    if len(instruction_map_obj) == len(instruction_map_asm):
+                        break
+                    i_inst_asm = instruction_map_asm[i_inst].split('\t')[0]
+                    i_inst_obj = instruction_map_obj[i_inst].split('\t')[0]
+                    if i_inst_asm == i_inst_obj:
+                        i_inst += 1
+                    elif (i_inst_obj in i_inst_asm) or (i_inst_asm in i_inst_obj):
+                        # It is possible that:
+                        # ble be used as blez or
+                        # beq be used as beqz
+                        i_inst += 1
+                    else:
+                        # It is possible that lw be expanded to two instructions lui and lw
+                        # It is possible that sw be expanded to two instructions lui and sw
+                        i_next_asm = instruction_map_asm[i_inst + 1].split('\t')[0]
+                        if i_next_asm == i_inst_obj:
+                            del instruction_map_asm[i_inst]
+                            i_inst += 1
+                        else:
+                            # It is possible that "jal" be called as "call" instruction
+                            i_inst += 1
+
     # Form a 2-dimensional array with instructions from both .s and .obj file
     if len(instruction_map_asm) != len(instruction_map_obj):
         print('Number of instructions is not the same in both .s and .obj file')
