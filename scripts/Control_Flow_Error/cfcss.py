@@ -81,7 +81,9 @@ class CFCSS:
                         try:
                             i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
                             for i in range(len(i_line_block_asm)):
-                                if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] == i_line_block_asm[i]:
+
+                                #i_line_block_asm = i_line_block_asm[i].split(';')
+                                if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] in i_line_block_asm[i]:
                                     block_found = True
                                     break
                         except:
@@ -305,7 +307,8 @@ class CFCSS:
                     # It is possible that sw be expanded to two instructions lui and sw
                     i_next_asm = instruction_map_asm[i_inst+1].split('\t')[0]
                     if i_next_asm == i_inst_obj:
-                        del instruction_map_asm[i_inst]
+                        instruction_map_asm[i_inst] = instruction_map_asm[i_inst] + ";" + instruction_map_asm[i_inst+1]
+                        del instruction_map_asm[i_inst+1]
                         i_inst += 1
                     else:
                         # It is possible that "jal" be called as "call" instruction

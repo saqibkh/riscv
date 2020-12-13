@@ -12,7 +12,7 @@ from os import path
 
 #
 branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
-branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble', 'bltz', 'bgtz', 'bgt']
+branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble', 'bltz', 'bgtz', 'bgt', 'blez']
 
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
@@ -147,7 +147,8 @@ def generate_instruction_mapping(self):
                         # It is possible that sw be expanded to two instructions lui and sw
                         i_next_asm = instruction_map_asm[i_inst + 1].split('\t')[0]
                         if i_next_asm == i_inst_obj:
-                            del instruction_map_asm[i_inst]
+                            instruction_map_asm[i_inst] = instruction_map_asm[i_inst]+";"+instruction_map_asm[i_inst+1]
+                            del instruction_map_asm[i_inst + 1]
                             i_inst += 1
                         else:
                             # It is possible that "jal" be called as "call" instruction
