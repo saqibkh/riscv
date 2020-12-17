@@ -35,6 +35,7 @@ import yacca
 import ecca
 import rscfc
 import trial1
+import trial2
 
 
 def usage():
@@ -125,6 +126,15 @@ def main(argv):
         for listitem in i_trial1.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(trial1_file)  # Compile the newly created assembly file to generate a static binary
+
+    # Generate TRIAL2
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    i_trial2 = trial2.TRIAL2(map)
+    trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
+    with open(trial2_file, 'w') as filehandle:
+        for listitem in i_trial2.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
 
     # Delete the unnecessary .o .objdump .readelf file
     if not l_enable_extras:
