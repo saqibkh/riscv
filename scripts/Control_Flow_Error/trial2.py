@@ -8,6 +8,10 @@ from os import path
 
 class TRIAL2:
     def __init__(self, i_map):
+
+        # Length of signature in bits example 32-bits, 64-bits, 128-bits
+        self.length_signature = 32
+
         self.original_map = i_map
 
         # Compile time signature
@@ -26,35 +30,179 @@ class TRIAL2:
         self.new_asm_file = self.original_map.file_asm
 
         utils.generate_instruction_mapping(self)
-
-        # Calculate the compile_time signature
-        self.calculate_compile_time_sig()
+        self.process_blocks()
 
         # Generate the new assembly file
         self.generate_TRIAL2_file_updated()
 
         print("Finished processing TRIAL2")
 
-    def calculate_compile_time_sig(self):
+    def process_blocks(self):
+
+        # 1. Generate compile time signature for each block
         for i in range(len(self.original_map.blocks)):
             cum_sig = '0x0'
             compound_sig = ''
             for j in range(len(self.original_map.blocks[i].entries)):
                 sig = self.original_map.blocks[i].opcode[j]
-
-                if len(compound_sig) + len(sig) <= 16:
+                if len(compound_sig) + len(sig) <= self.length_signature/4:
                     compound_sig = compound_sig + sig
                 else:
                     cum_sig = hex(int(cum_sig, 16) ^ int(compound_sig, 16))
                     compound_sig = ''
-
             # Process remaining instruction signatures
             if compound_sig != '':
                 cum_sig = hex(int(cum_sig, 16) ^ int(compound_sig, 16))
                 compound_sig = ''
-
             # Finally add the cum_sig back to the list of compile time signatures
             self.compile_time_sig.append(cum_sig)
 
+        # 2. Generate the valid branch for each block
+        #    Valid branch (d_i) is calculated as: d_i = s_i XOR s_pred1 (predecessor 1)
+        # for i in range(len(self.original_map.blocks)):
+        #     s_i = self.compile_time_sig[i]
+        #     # First make sure that a predecessor block exist which might not always be true
+        #     # Main will not have an incoming block.
+        #     if not self.original_map.blocks[i].previous_block_id:
+        #         s_pred1 = s_i
+        #         d_i = s_i
+        #     else:
+        #         # 0th elements points to first predecessor
+        #         s_pred1 = self.get_signature_based_on_id(self.original_map.blocks[i].previous_block_id[0])
+        #         d_i = hex(int(s_i, 16) ^ int(s_pred1, 16))
+        #     self.valid_branch_d.append(d_i)
+        #     del d_i, s_i, s_pred1
+
+        # 3. Generate D (run-time adjusting signature). When a basic block has multiple incoming edges,
+        # the signature uses an extra variable D. This variable is updated by the predecessor basic blocks
+        # and ensures that the run-time signature can be updated to the correct value,
+        # regardless of which predecessor has executed.
+        for i in range(len(self.original_map.blocks)):
+            if len(self.original_map.blocks[i].previous_block_id) > 1:
+                # Get the signature of the first incoming block
+                predesessor_block_id_1 = self.original_map.blocks[i].previous_block_id[0]
+                D_sign = self.compile_time_sig[predesessor_block_id_1]
+
+                for j in range(len(self.original_map.blocks[i].previous_block_id) - 1):
+                    predesessor_block_id_next = self.original_map.blocks[i].previous_block_id[j + 1]
+                    # Get the ID of the incoming blocks
+                    incoming_block_id = self.original_map.blocks[i].previous_block_id[j + 1]
+                    self.D_sig[incoming_block_id] = hex(int(D_sign,16) ^
+                                                        int(self.compile_time_sig[predesessor_block_id_next], 16))
+        print('Finished processing blocks.')
+
+    def get_signature_based_on_id(self, i_id):
+        for i in range(len(self.original_map.blocks)):
+            if self.original_map.blocks[i].id == i_id:
+                return self.compile_time_sig[i]
+
     def generate_TRIAL2_file_updated(self):
-        print("Done")
+        i_block = 0
+        i_line_num_new_asm_file = 0
+
+        # 1. Loop the asm file lines until the end of file
+        while (i_line_num_new_asm_file < len(self.new_asm_file)):
+
+            # Return once all the blocks are processed
+            if i_block == len(self.original_map.blocks):
+                return
+
+            block_found = False
+            i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file]
+
+            # There are two cases where a basic block can start from
+            # 1. When a function beings within the asm file (make sure the first instruction within the function and the block matches one another)
+            if not i_line_asm.startswith('\t'):
+                # Make sure the first instruction in asm function matches the first instruction in the block
+                # Get the first instruction in this particular block for comparison
+                i_line_block_obj = self.original_map.blocks[i_block].entries[0]
+                # i_line_block_asm could get multiple hits
+                i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
+                for i in range(len(i_line_block_asm)):
+                    if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] in i_line_block_asm[i]:
+                        block_found = True
+                        del i_line_block_obj, i_line_block_asm
+                        break
+
+            # 2. When a branch instruction is present within the function itself
+            #    and the next instruction is the starting instruction of the next block
+            else:  # Line starts with '\t'
+                i_line_asm = i_line_asm.split('\t', 1)[1]
+                if not i_line_asm.startswith('.'):
+                    if utils.is_branch_instruction(i_line_asm):
+                        # Get the first instruction in the next block for comparison
+                        try:
+                            i_line_block_obj = self.original_map.blocks[i_block].entries[0]
+                        except:
+                            print('done')
+                        i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
+                        try:
+                            i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
+                            for i in range(len(i_line_block_asm)):
+                                if self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1] in \
+                                        i_line_block_asm[i]:
+                                    block_found = True
+                                    break
+                        except:
+                            # unexpected line encountered
+                            i_line_num_new_asm_file += 1
+                            continue
+
+            if block_found:
+                i_line_num_new_asm_file += 1
+
+                # If it is the first block or initial block then just set s10 and s11 to 0.
+                # It has no incoming edges
+                if len(self.original_map.blocks[i_block].previous_block_id) ==  0:
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,0')
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0')
+                    i_line_num_new_asm_file += 2
+
+                # All blocks have atleast one incoming edge
+                else:
+                    # If more than one incoming edge then use the extended signature
+                    if len(self.original_map.blocks[i_block].previous_block_id) > 1:
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                        i_line_num_new_asm_file += 1
+
+                    # Load expected signature value into register t6
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + str(self.compile_time_sig[i_block]))
+                    i_line_num_new_asm_file += 1
+                    # Check the expected value
+                    #self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,t6,' + utils.exception_handler_address)
+                    #i_line_num_new_asm_file += 1
+
+
+                # Get to the last instruction in the block and then add the extended signature
+                for i in range(len(self.original_map.blocks[i_block].entries) - 1):
+                    i_line_num_new_asm_file += 1
+
+                # If there are no outputs blocks then don't add an extended signature
+                if len(self.original_map.blocks[i_block].next_block_id) != 0:
+                    # loop through all the next blocks
+                    for i in range(len(self.original_map.blocks[i_block].next_block_id)):
+                        if self.D_sig[i_block] != None:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.D_sig[i_block]))
+                        else:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0')
+
+                i_block += 1
+
+            i_line_num_new_asm_file += 1
+
+        if i_block != len(self.original_map.blocks):
+            print('Failed to process all blocks. Currently at block id # ' + str(i_block))
+            #raise Exception
+
+
+    def get_matching_asm_line_using_objdump_line(self, i_line):
+        # Definition: Checks for a matching line in the objdump file and returns the
+        #             corresponding asm line
+        line_instruction_map = 0
+        list_matching_objects = []
+        while line_instruction_map < len(self.instruction_map[0]):
+            if i_line == self.instruction_map[1][line_instruction_map]:
+                i_asm_instruction = self.instruction_map[0][line_instruction_map]
+                list_matching_objects.append(i_asm_instruction)
+            line_instruction_map += 1
+        return list_matching_objects
