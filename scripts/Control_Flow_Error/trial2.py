@@ -192,48 +192,10 @@ class TRIAL2:
                     # Get the next set of instructions to load from memory
                     l_remaining_opcode_length = self.get_opcode_length_to_jump_signature_length(inst, i_block, self.length_signature)
 
-                    # If enough memory opcodes are remaining then add LWU or LD depending on self.length_signature
-                    #l_remaining_opcode_length = self.get_remaining_opcode_length(inst, i_block)
-
                     # When all possible instructions have been accounted for then break this while loop
                     if l_remaining_opcode_length == 0:
                         break
 
-                    # if l_remaining_opcode_length >= self.length_signature:
-                    #     # 8-bytes == 32-bits
-                    #     if self.length_signature == 8:
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tlwu\ts10,12(s10)')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
-                    #         i_line_num_new_asm_file += 1
-                    #     # 16-bytes == 64-bits
-                    #     elif self.length_signature == 16:
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,12(s10)')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
-                    #         i_line_num_new_asm_file += 1
-                    #     # 32-bytes == 128-bits
-                    #     elif self.length_signature == 32:
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\tlq\ts10,12(s10)')
-                    #         i_line_num_new_asm_file += 1
-                    #         self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
-                    #         i_line_num_new_asm_file += 1
-                    #     else:
-                    #         print("Unidentified option.")
-                    #         raise Exception
-                    #
-                    #     inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block, self.length_signature)
-                    #     i_line_num_new_asm_file += inst_to_jump
-                    #     inst += inst_to_jump
-                    #
-                    # # We don't have enough instructions to use max self.length_signature. Adjust accordingly
-                    # else:
                     if l_remaining_opcode_length == 4:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
                         i_line_num_new_asm_file += 1
