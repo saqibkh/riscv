@@ -181,7 +181,9 @@ class TRIAL2:
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + i_compile_time_sig_incoming_block)
                     i_line_num_new_asm_file += 1
                     # Check the expected value
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,t6,' + utils.exception_handler_address)
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,t6')
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\ts11,' + utils.exception_handler_address)
                     i_line_num_new_asm_file += 1
 
                 inst = 0
@@ -247,7 +249,7 @@ class TRIAL2:
                         elif l_remaining_opcode_length == 12:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
                             i_line_num_new_asm_file += 1
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,24(s10)')
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,18(s10)')
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tslli\ts10,s10,16')
                             i_line_num_new_asm_file += 1
