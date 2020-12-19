@@ -9,8 +9,12 @@ from os import path
 class TRIAL2:
     def __init__(self, i_map):
 
-        # Length of signature in bits example 32-bits, 64-bits, 128-bits
-        self.length_signature = 32
+        # Length of signature in bytes
+        # 4-bytes  = 16  bits
+        # 8-bytes  = 32  bits
+        # 16-bytes = 64  bits
+        # 32-bytes = 128 bits
+        self.length_signature = 16
 
         self.original_map = i_map
 
@@ -43,13 +47,22 @@ class TRIAL2:
         for i in range(len(self.original_map.blocks)):
             cum_sig = '0x0'
             compound_sig = ''
-            for j in range(len(self.original_map.blocks[i].entries)):
+
+            j = 0
+            while j < len(self.original_map.blocks[i].entries):
+
+                # Don't consider branch instructions in the computation of compile time signature
+                if utils.is_branch_instruction(self.original_map.blocks[i].entries[j]):
+                    break
+
                 sig = self.original_map.blocks[i].opcode[j]
-                if len(compound_sig) + len(sig) <= self.length_signature/4:
-                    compound_sig = compound_sig + sig
+                if len(compound_sig) + len(sig) <= self.length_signature:
+                    compound_sig = sig + compound_sig
+                    j = j + 1
                 else:
                     cum_sig = hex(int(cum_sig, 16) ^ int(compound_sig, 16))
                     compound_sig = ''
+
             # Process remaining instruction signatures
             if compound_sig != '':
                 cum_sig = hex(int(cum_sig, 16) ^ int(compound_sig, 16))
@@ -89,7 +102,6 @@ class TRIAL2:
                     incoming_block_id = self.original_map.blocks[i].previous_block_id[j + 1]
                     self.D_sig[incoming_block_id] = hex(int(D_sign,16) ^
                                                         int(self.compile_time_sig[predesessor_block_id_next], 16))
-        print('Finished processing blocks.')
 
     def get_signature_based_on_id(self, i_id):
         for i in range(len(self.original_map.blocks)):
@@ -155,10 +167,9 @@ class TRIAL2:
                 # It has no incoming edges
                 if len(self.original_map.blocks[i_block].previous_block_id) ==  0:
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,0')
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0')
-                    i_line_num_new_asm_file += 2
+                    i_line_num_new_asm_file += 1
 
-                # All blocks have atleast one incoming edge
+                # All blocks have at least one incoming edge
                 else:
                     # If more than one incoming edge then use the extended signature
                     if len(self.original_map.blocks[i_block].previous_block_id) > 1:
@@ -166,33 +177,162 @@ class TRIAL2:
                         i_line_num_new_asm_file += 1
 
                     # Load expected signature value into register t6
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + str(self.compile_time_sig[i_block]))
+                    i_compile_time_sig_incoming_block = self.compile_time_sig[self.original_map.blocks[i_block].previous_block_id[0]]
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + i_compile_time_sig_incoming_block)
                     i_line_num_new_asm_file += 1
                     # Check the expected value
-                    #self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,t6,' + utils.exception_handler_address)
-                    #i_line_num_new_asm_file += 1
-
-
-                # Get to the last instruction in the block and then add the extended signature
-                for i in range(len(self.original_map.blocks[i_block].entries) - 1):
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,t6,' + utils.exception_handler_address)
                     i_line_num_new_asm_file += 1
 
-                # If there are no outputs blocks then don't add an extended signature
+                inst = 0
+                while inst < len(self.original_map.blocks[i_block].entries):
+                    # If enough memory opcodes are remaining then add LWU or LD depending on self.length_signature
+                    l_remaining_opcode_length = self.get_remaining_opcode_length(inst, i_block)
+
+                    # When all possible instructions have been accounted for then break this while loop
+                    if l_remaining_opcode_length == 0:
+                        break
+
+                    if l_remaining_opcode_length >= self.length_signature:
+                        # 8-bytes == 32-bits
+                        if self.length_signature == 8:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tlwu\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+                        # 16-bytes == 64-bits
+                        elif self.length_signature == 16:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+                        # 32-bytes == 128-bits
+                        elif self.length_signature == 32:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tlq\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+                        else:
+                            print("Unidentified option.")
+                            raise Exception
+
+                        inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block, self.length_signature)
+                        i_line_num_new_asm_file += inst_to_jump
+                        inst += inst_to_jump
+
+                    # We don't have enough instructions to use max self.length_signature. Adjust accordingly
+                    else:
+                        if l_remaining_opcode_length == 4:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tlhu\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+
+                        elif l_remaining_opcode_length == 8:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tlwu\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+
+                        elif l_remaining_opcode_length == 12:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,24(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tslli\ts10,s10,16')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tsrli\ts10,s10,16')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+
+                        elif l_remaining_opcode_length == 16:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tld\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+
+
+                        elif (l_remaining_opcode_length == 24) or (l_remaining_opcode_length == 28):
+                            print("Haven't been tested yet")
+                            raise Error
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tlq\ts10,12(s10)')
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
+                            i_line_num_new_asm_file += 1
+
+                        else:
+                            print("This case isn't possible or we haven't accounted for it.")
+                            raise Exception
+
+                        inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block, l_remaining_opcode_length)
+                        i_line_num_new_asm_file += inst_to_jump
+                        inst += inst_to_jump
+
+                # We are already ahead of the last instruction in the block. Now get back before the last instruction
+                #i_line_num_new_asm_file -= 1
                 if len(self.original_map.blocks[i_block].next_block_id) != 0:
                     # loop through all the next blocks
                     for i in range(len(self.original_map.blocks[i_block].next_block_id)):
                         if self.D_sig[i_block] != None:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.D_sig[i_block]))
+                            break
                         else:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0')
-
+                            break
                 i_block += 1
 
             i_line_num_new_asm_file += 1
 
         if i_block != len(self.original_map.blocks):
             print('Failed to process all blocks. Currently at block id # ' + str(i_block))
-            #raise Exception
+            return
+            raise Exception
+
+    # Definition: gets the number of instructions to jump based on self.length_signature
+    def get_number_of_instructions_to_jump_signature_length(self, i_inst, i_block, i_sig_length):
+        num_inst = 0
+        length_inst = 0
+        while i_inst < len(self.original_map.blocks[i_block].opcode):
+            length = len(self.original_map.blocks[i_block].opcode[i_inst])
+            if (length + length_inst) > i_sig_length:
+                return num_inst
+            else:
+                length_inst += length
+                num_inst += 1
+            i_inst += 1
+        return num_inst
+
+
+
+
+    # Definition: Gets the length of instructions that are remaining within the block
+    def get_remaining_opcode_length(self, i_inst, i_block):
+        l_length_opcode_left = 0
+        while i_inst < len(self.original_map.blocks[i_block].opcode):
+
+            # Don't consider the final branch instruction within the basic block
+            if utils.is_branch_instruction(self.original_map.blocks[i_block].entries[i_inst]):
+                return l_length_opcode_left
+
+            length = len(self.original_map.blocks[i_block].opcode[i_inst])
+            l_length_opcode_left += length
+            i_inst += 1
+        return l_length_opcode_left
 
 
     def get_matching_asm_line_using_objdump_line(self, i_line):
