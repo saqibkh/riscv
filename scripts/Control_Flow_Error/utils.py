@@ -14,6 +14,9 @@ from os import path
 branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
 branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble', 'bltz', 'bgtz', 'bgt', 'blez', 'beqz']
 
+
+signature_checking_registers = ['t6', 's11', 's10']
+
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
 
@@ -60,6 +63,23 @@ def get_instruction(i_line):
     #             Example:
     line = i_line.split('\t')[0]
     return line
+
+def is_instruction_signature_checking_asm(i_line):
+    i_line = i_line.split('\t')[1]
+    i_params = i_line.split(',')
+    for i in range(len(i_params)):
+        for j in range(len(signature_checking_registers)):
+            if signature_checking_registers[j] == i_params[i]:
+                return True
+    return False
+
+def is_signature_checking_register(i_line):
+    i_params = i_line.split(',')
+    for i in range(len(i_params)):
+        for j in range(len(signature_checking_registers)):
+            if signature_checking_registers[j] == i_params[i]:
+                return True
+    return False
 
 
 def get_jump_address(i_line):

@@ -82,6 +82,7 @@ def main(argv):
     ######                                                     ######
     #################################################################
 
+#####################################################################################################################
     # Generate CFCSS (Control Flow Checking by Software Signature)
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_cfcss = cfcss.CFCSS(map)
@@ -90,7 +91,10 @@ def main(argv):
         for listitem in i_cfcss.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(cfcss_file)  # Compile the newly created assembly file to generate a static binary
+    del cfcss_file, map, i_cfcss
+#####################################################################################################################
 
+#####################################################################################################################
     # Generate YACCA
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_yacca = yacca.YACCA(map)
@@ -99,7 +103,10 @@ def main(argv):
         for listitem in i_yacca.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(yacca_file)  # Compile the newly created assembly file to generate a static binary
+    del map, i_yacca, yacca_file
+#####################################################################################################################
 
+#####################################################################################################################
     # Generate ECCA
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_ecca = ecca.ECCA(map)
@@ -108,7 +115,10 @@ def main(argv):
         for listitem in i_ecca.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(ecca_file)  # Compile the newly created assembly file to generate a static binary
+    del map, i_ecca, ecca_file
+#####################################################################################################################
 
+#####################################################################################################################
     # Generate RSCFC
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_rscfc = rscfc.RSCFC(map)
@@ -117,7 +127,10 @@ def main(argv):
         for listitem in i_rscfc.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(rscfc_file)  # Compile the newly created assembly file to generate a static binary
+    del map, i_rscfc, rscfc_file
+#####################################################################################################################
 
+#####################################################################################################################
     # Generate TRIAL1
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_trial1 = trial1.TRIAL1(map)
@@ -126,15 +139,32 @@ def main(argv):
         for listitem in i_trial1.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(trial1_file)  # Compile the newly created assembly file to generate a static binary
+    del map, i_trial1, trial1_file
+#####################################################################################################################
 
+#####################################################################################################################
     # Generate TRIAL2
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_trial2 = trial2.TRIAL2(map)
-    trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
-    with open(trial2_file, 'w') as filehandle:
+    trial2_intermediate_file = argv[0].rsplit('.')[0] + '_intermediate_trial2.s'
+    with open(trial2_intermediate_file, 'w') as filehandle:
         for listitem in i_trial2.new_asm_file:
             filehandle.write('%s\n' % listitem)
-    compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(trial2_intermediate_file)  # Compile the newly created assembly file to generate a static binary
+    ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
+    trial2_s_intermediate_file = utils.readfile(trial2_intermediate_file)
+    trial2_obj_intermediate_file = utils.readfile(trial2_intermediate_file.split(".s")[0] + ".objdump")
+    trial2_s_intermediate_file, trial2_obj_intermediate_file = i_trial2.remove_signature_checking(
+        trial2_s_intermediate_file, trial2_obj_intermediate_file)
+    map_new = utils.ControlFlowMapRevised(trial2_s_intermediate_file, trial2_obj_intermediate_file)
+    i_trial2_new = trial2.TRIAL2(map_new)
+
+    trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
+    with open(trial2_file, 'w') as filehandle:
+        for listitem in i_trial2_new.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+
+#####################################################################################################################
 
     # Delete the unnecessary .o .objdump .readelf file
     if not l_enable_extras:

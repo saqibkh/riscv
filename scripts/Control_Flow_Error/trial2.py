@@ -5,7 +5,6 @@ import utils
 from os import path
 
 
-
 class TRIAL2:
     def __init__(self, i_map):
 
@@ -100,7 +99,7 @@ class TRIAL2:
                     predesessor_block_id_next = self.original_map.blocks[i].previous_block_id[j + 1]
                     # Get the ID of the incoming blocks
                     incoming_block_id = self.original_map.blocks[i].previous_block_id[j + 1]
-                    self.D_sig[incoming_block_id] = hex(int(D_sign,16) ^
+                    self.D_sig[incoming_block_id] = hex(int(D_sign, 16) ^
                                                         int(self.compile_time_sig[predesessor_block_id_next], 16))
 
     def get_signature_based_on_id(self, i_id):
@@ -165,7 +164,7 @@ class TRIAL2:
 
                 # If it is the first block or initial block then just set s10 and s11 to 0.
                 # It has no incoming edges
-                if len(self.original_map.blocks[i_block].previous_block_id) ==  0:
+                if len(self.original_map.blocks[i_block].previous_block_id) == 0:
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,0')
                     i_line_num_new_asm_file += 1
 
@@ -177,7 +176,8 @@ class TRIAL2:
                         i_line_num_new_asm_file += 1
 
                     # Load expected signature value into register t6
-                    i_compile_time_sig_incoming_block = self.compile_time_sig[self.original_map.blocks[i_block].previous_block_id[0]]
+                    i_compile_time_sig_incoming_block = self.compile_time_sig[
+                        self.original_map.blocks[i_block].previous_block_id[0]]
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + i_compile_time_sig_incoming_block)
                     i_line_num_new_asm_file += 1
                     # Check the expected value
@@ -190,7 +190,8 @@ class TRIAL2:
                 while inst < len(self.original_map.blocks[i_block].entries):
 
                     # Get the next set of instructions to load from memory
-                    l_remaining_opcode_length = self.get_opcode_length_to_jump_signature_length(inst, i_block, self.length_signature)
+                    l_remaining_opcode_length = self.get_opcode_length_to_jump_signature_length(inst, i_block,
+                                                                                                self.length_signature)
 
                     # When all possible instructions have been accounted for then break this while loop
                     if l_remaining_opcode_length == 0:
@@ -267,12 +268,13 @@ class TRIAL2:
                         print("This case isn't possible or we haven't accounted for it.")
                         raise Exception
 
-                    inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block, l_remaining_opcode_length)
+                    inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block,
+                                                                                            l_remaining_opcode_length)
                     i_line_num_new_asm_file += inst_to_jump
                     inst += inst_to_jump
 
                 # We are already ahead of the last instruction in the block. Now get back before the last instruction
-                #i_line_num_new_asm_file -= 1
+                # i_line_num_new_asm_file -= 1
                 if len(self.original_map.blocks[i_block].next_block_id) != 0:
                     # loop through all the next blocks
                     for i in range(len(self.original_map.blocks[i_block].next_block_id)):
@@ -323,7 +325,6 @@ class TRIAL2:
             i_inst += 1
         return length_inst
 
-
     # Definition: Gets the length of instructions that are remaining within the block
     def get_remaining_opcode_length(self, i_inst, i_block):
         l_length_opcode_left = 0
@@ -338,7 +339,6 @@ class TRIAL2:
             i_inst += 1
         return l_length_opcode_left
 
-
     def get_matching_asm_line_using_objdump_line(self, i_line):
         # Definition: Checks for a matching line in the objdump file and returns the
         #             corresponding asm line
@@ -350,3 +350,36 @@ class TRIAL2:
                 list_matching_objects.append(i_asm_instruction)
             line_instruction_map += 1
         return list_matching_objects
+
+    def remove_signature_checking(self, i_s_file, i_objdump_file):
+        i = 0
+        while i < len(i_s_file):
+            l_found = False
+            i_line = i_s_file[i]
+            if i_line.startswith('\t'):
+                i_line = i_line.strip()
+                if not i_line.startswith('.'):
+                    if utils.is_instruction_signature_checking_asm(i_line):
+                        i_s_file.remove(i_s_file[i])
+                        i -= 1
+            i += 1
+
+        # Just remove all lines from the objdump file that access signature checking registers like s11/s10/t6
+        i = 0
+        i_excpt_addr = hex(int(utils.exception_handler_address, 10)).split('0x')[-1]
+        while i < len(i_objdump_file):
+            i_line = i_objdump_file[i]
+            if i_line.startswith("   "):
+                address, opcode, instruction = i_objdump_file[i].split('\t', 2)
+                l_params = instruction.split('\t')[-1]
+                if utils.is_signature_checking_register(l_params):
+                    i_objdump_file.remove(i_objdump_file[i])
+                    i -= 1
+
+                # We also need to remove the j to exception handler
+                elif i_excpt_addr in l_params.split(' ')[0]:
+                    i_objdump_file.remove(i_objdump_file[i])
+                    i -= 1
+            i+=1
+
+        return i_s_file, i_objdump_file
