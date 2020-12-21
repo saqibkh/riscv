@@ -404,7 +404,7 @@ class TRIAL2:
                 # We also need to remove the j to exception handler
                 l_params = (l_params.split(' ')[0]).split(",")
                 for j in range(len(l_params)):
-                    if i_excpt_addr == l_params[j]:
+                    if (i_excpt_addr == l_params[j]) and (utils.is_branch_instruction(instruction.split('\t')[0])):
                         i_objdump_file.remove(i_objdump_file[i])
                         i -= 1
             i += 1
@@ -442,7 +442,7 @@ class TRIAL2:
                                     #print("We have a matching opcode that we have to update")
                                     i_map.blocks[k].opcode[m] = new_opcode
                                     i_matching_instruction += 1
-                        if i_matching_instruction > 1:
-                            print("Some how we updated the same opcode in two places. Please check manually")
+                        #if i_matching_instruction > 1:
+                            #print("Some how we updated the same opcode in two places. Please check manually")
                             #raise Exception
         return i_map
