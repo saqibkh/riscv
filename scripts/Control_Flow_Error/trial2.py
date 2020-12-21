@@ -2,11 +2,21 @@ import datetime
 import random
 import subprocess
 import utils
+import fileinput
 from os import path
 
 
+def update_signature(i_sig_old, i_sig_new, i_file):
+    for i in range(len(i_sig_old)):
+        # If signature is not the same then update the .s file
+        if i_sig_old[i] != i_sig_new[i]:
+            with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
+                for line in file:
+                    print(line.replace(i_sig_old[i], i_sig_new[i]), end='')
+
+
 class TRIAL2:
-    def __init__(self, i_map):
+    def __init__(self, i_map, i_generate_signature_only=False):
 
         # Length of signature in bytes
         # 4-bytes  = 16  bits
@@ -32,8 +42,13 @@ class TRIAL2:
         self.instruction_map = [[]]
         self.new_asm_file = self.original_map.file_asm
 
-        utils.generate_instruction_mapping(self)
         self.process_blocks()
+
+        # If i_generate_signature_only is True, then don't proceed any further
+        if i_generate_signature_only:
+            return
+
+        utils.generate_instruction_mapping(self)
 
         # Generate the new assembly file
         self.generate_TRIAL2_file_updated()
@@ -380,6 +395,42 @@ class TRIAL2:
                 elif i_excpt_addr in l_params.split(' ')[0]:
                     i_objdump_file.remove(i_objdump_file[i])
                     i -= 1
-            i+=1
-
+            i += 1
         return i_s_file, i_objdump_file
+
+    def update_opcodes(self, i_map, i_new_map):
+        # Check the total number of official functions in both new and old maps
+        if len(i_map.functions.f_instructions) != len(i_new_map.functions.f_instructions):
+            print("We don't have the same number of functions")
+            raise Exception
+
+        # Check the total number of instructions in each function for both new and old maps
+        for i in range(len(i_map.functions.f_instructions)):
+            if len(i_map.functions.f_instructions[i].opcode) != len(i_new_map.functions.f_instructions[i].opcode):
+                print(
+                    "We don't have the same number of instructions in both the function:" + i_map.functions.f_names[i])
+                raise Exception
+
+        # Now check the opcodes in both old and new maps and then copy any changes from new to old map
+        for i in range(len(i_map.functions.f_instructions)):
+            for j in range(len(i_map.functions.f_instructions[i].opcode)):
+                if i_map.functions.f_instructions[i].opcode[j] != i_new_map.functions.f_instructions[i].opcode[j]:
+                    if not utils.is_branch_instruction(i_map.functions.f_instructions[i].instruction[j]):
+                        x1 = i_map.functions.f_instructions[i].instruction[j]
+                        y1 = i_new_map.functions.f_instructions[i].instruction[j]
+                        old_opcode = i_map.functions.f_instructions[i].opcode[j]
+                        new_opcode = i_new_map.functions.f_instructions[i].opcode[j]
+                        i_map.functions.f_instructions[i].opcode[j] = i_new_map.functions.f_instructions[i].opcode[j]
+
+                        # Also need to find a matching instruction in the blocks and update the opcode there
+                        i_matching_instruction = 0
+                        for k in range(len(i_map.blocks)):
+                            for m in range(len(i_map.blocks[k].opcode)):
+                                if old_opcode == i_map.blocks[k].opcode[m]:
+                                    print("We have a matching opcode that we have to update")
+                                    i_map.blocks[k].opcode[m] = new_opcode
+                                    i_matching_instruction += 1
+                        if i_matching_instruction > 1:
+                            print("Some how we updated the same opcode in two places. Please check manually")
+                            raise Exception
+        return i_map

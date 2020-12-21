@@ -146,24 +146,24 @@ def main(argv):
     # Generate TRIAL2
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_trial2 = trial2.TRIAL2(map)
-    trial2_intermediate_file = argv[0].rsplit('.')[0] + '_intermediate_trial2.s'
-    with open(trial2_intermediate_file, 'w') as filehandle:
+    trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
+    with open(trial2_file, 'w') as filehandle:
         for listitem in i_trial2.new_asm_file:
             filehandle.write('%s\n' % listitem)
-    compileUtil.compile_s(trial2_intermediate_file)  # Compile the newly created assembly file to generate a static binary
+    compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
+
     ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
-    trial2_s_intermediate_file = utils.readfile(trial2_intermediate_file)
-    trial2_obj_intermediate_file = utils.readfile(trial2_intermediate_file.split(".s")[0] + ".objdump")
+    trial2_s_intermediate_file = utils.readfile(trial2_file)
+    trial2_obj_intermediate_file = utils.readfile(trial2_file.split(".s")[0] + ".objdump")
     trial2_s_intermediate_file, trial2_obj_intermediate_file = i_trial2.remove_signature_checking(
         trial2_s_intermediate_file, trial2_obj_intermediate_file)
     map_new = utils.ControlFlowMapRevised(trial2_s_intermediate_file, trial2_obj_intermediate_file)
-    i_trial2_new = trial2.TRIAL2(map_new)
+    map_updated = i_trial2.update_opcodes(map, map_new)
+    i_trial2_new = trial2.TRIAL2(map_updated, i_generate_signature_only=True)
 
-    trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
-    with open(trial2_file, 'w') as filehandle:
-        for listitem in i_trial2_new.new_asm_file:
-            filehandle.write('%s\n' % listitem)
-
+    # We have old and new signatures in i_trial2 and i_trial2_new respectively.
+    trial2.update_signature(i_trial2.compile_time_sig, i_trial2_new.compile_time_sig, trial2_file)
+    compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
 #####################################################################################################################
 
     # Delete the unnecessary .o .objdump .readelf file
