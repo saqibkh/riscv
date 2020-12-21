@@ -51,7 +51,7 @@ def checkFileExists(i_filename):
 
 
 def main(argv):
-    l_enable_extras = False
+    l_enable_extras = True
 
     if len(sys.argv) == 1:
         usage()
@@ -162,7 +162,7 @@ def main(argv):
     i_trial2_new = trial2.TRIAL2(map_updated, i_generate_signature_only=True)
 
     # We have old and new signatures in i_trial2 and i_trial2_new respectively.
-    trial2.update_signature(i_trial2.compile_time_sig, i_trial2_new.compile_time_sig, trial2_file)
+    trial2.update_signature(i_trial2, i_trial2_new, trial2_file)
     compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
     print("Finished processing TRIAL2")
 #####################################################################################################################

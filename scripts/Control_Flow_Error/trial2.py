@@ -6,13 +6,26 @@ import fileinput
 from os import path
 
 
-def update_signature(i_sig_old, i_sig_new, i_file):
+def update_signature(i_obj_old, i_obj_new, i_file):
+    i_sig_old = i_obj_old.compile_time_sig
+    i_sig_new = i_obj_new.compile_time_sig
+
+    i_D_sig_old = i_obj_old.D_sig
+    i_D_sig_new = i_obj_new.D_sig
+
     for i in range(len(i_sig_old)):
         # If signature is not the same then update the .s file
         if i_sig_old[i] != i_sig_new[i]:
             with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
                 for line in file:
                     print(line.replace(i_sig_old[i], i_sig_new[i]), end='')
+
+    for i in range(len(i_D_sig_old)):
+        # If signature is not the same then update the .s file
+        if i_D_sig_old[i] != i_D_sig_new[i]:
+            with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
+                for line in file:
+                    print(line.replace(i_D_sig_old[i], i_D_sig_new[i]), end='')
 
 class TRIAL2:
     def __init__(self, i_map, i_generate_signature_only=False):
@@ -426,7 +439,7 @@ class TRIAL2:
                         for k in range(len(i_map.blocks)):
                             for m in range(len(i_map.blocks[k].opcode)):
                                 if old_opcode == i_map.blocks[k].opcode[m]:
-                                    print("We have a matching opcode that we have to update")
+                                    #print("We have a matching opcode that we have to update")
                                     i_map.blocks[k].opcode[m] = new_opcode
                                     i_matching_instruction += 1
                         if i_matching_instruction > 1:
