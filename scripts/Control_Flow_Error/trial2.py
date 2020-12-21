@@ -293,9 +293,14 @@ class TRIAL2:
                         print("This case isn't possible or we haven't accounted for it.")
                         raise Exception
 
+                    # Get the number of instructions to jump in the asm file
+                    inst_to_jump = self.get_number_of_instructions_to_jump_asm_signature_length(inst, i_block,
+                                                                                                l_remaining_opcode_length)
+                    i_line_num_new_asm_file += inst_to_jump
+
+                    # Get the number of instructions to jump in the basic blocks
                     inst_to_jump = self.get_number_of_instructions_to_jump_signature_length(inst, i_block,
                                                                                             l_remaining_opcode_length)
-                    i_line_num_new_asm_file += inst_to_jump
                     inst += inst_to_jump
 
                 # We are already ahead of the last instruction in the block. Now get back before the last instruction
@@ -315,14 +320,37 @@ class TRIAL2:
 
         if i_block != len(self.original_map.blocks):
             print('Failed to process all blocks. Currently at block id # ' + str(i_block))
-            return
             raise Exception
+
+    def get_number_of_instructions_to_jump_asm_signature_length(self, i_inst, i_block, i_sig_length):
+        num_inst = 0
+        i_num_inst_combined = 0
+        length_inst = 0
+        while i_inst < len(self.original_map.blocks[i_block].opcode):
+
+            # # # Get the first instruction in this particular block for comparison
+            i_line_block_obj = self.original_map.blocks[i_block].entries[i_inst]
+            # # # i_line_block_asm could get multiple hits
+            i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
+            i_num_inst_combined = len(i_line_block_asm[0].split(";"))
+
+            length = len(self.original_map.blocks[i_block].opcode[i_inst])
+            if (length + length_inst) > i_sig_length:
+                return num_inst
+            else:
+                length_inst += length
+                num_inst += i_num_inst_combined
+            i_inst += 1
+        return num_inst
+
 
     # Definition: gets the number of instructions to jump based on self.length_signature
     def get_number_of_instructions_to_jump_signature_length(self, i_inst, i_block, i_sig_length):
         num_inst = 0
+        i_num_inst_combined = 0
         length_inst = 0
         while i_inst < len(self.original_map.blocks[i_block].opcode):
+
             length = len(self.original_map.blocks[i_block].opcode[i_inst])
             if (length + length_inst) > i_sig_length:
                 return num_inst
@@ -336,7 +364,6 @@ class TRIAL2:
         num_inst = 0
         length_inst = 0
         while i_inst < len(self.original_map.blocks[i_block].opcode):
-
             # Don't consider the final branch instruction within the basic block
             if utils.is_branch_instruction(self.original_map.blocks[i_block].entries[i_inst]):
                 return length_inst
@@ -442,7 +469,7 @@ class TRIAL2:
                                     #print("We have a matching opcode that we have to update")
                                     i_map.blocks[k].opcode[m] = new_opcode
                                     i_matching_instruction += 1
-                        #if i_matching_instruction > 1:
-                            #print("Some how we updated the same opcode in two places. Please check manually")
+                        if i_matching_instruction > 1:
+                            print("Some how we updated the same opcode in two places. Please check manually")
                             #raise Exception
         return i_map
