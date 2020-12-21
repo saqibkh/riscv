@@ -164,6 +164,9 @@ def main(argv):
     # We have old and new signatures in i_trial2 and i_trial2_new respectively.
     trial2.update_signature(i_trial2.compile_time_sig, i_trial2_new.compile_time_sig, trial2_file)
     compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
+    print("Finished processing TRIAL2")
+#####################################################################################################################
+
 #####################################################################################################################
 
     # Delete the unnecessary .o .objdump .readelf file

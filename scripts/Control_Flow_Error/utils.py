@@ -65,7 +65,7 @@ def get_instruction(i_line):
     return line
 
 def is_instruction_signature_checking_asm(i_line):
-    i_line = i_line.split('\t')[1]
+    i_line = i_line.split('\t')[-1]
     i_params = i_line.split(',')
     for i in range(len(i_params)):
         for j in range(len(signature_checking_registers)):

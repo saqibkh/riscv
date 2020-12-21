@@ -14,7 +14,6 @@ def update_signature(i_sig_old, i_sig_new, i_file):
                 for line in file:
                     print(line.replace(i_sig_old[i], i_sig_new[i]), end='')
 
-
 class TRIAL2:
     def __init__(self, i_map, i_generate_signature_only=False):
 
@@ -52,8 +51,6 @@ class TRIAL2:
 
         # Generate the new assembly file
         self.generate_TRIAL2_file_updated()
-
-        print("Finished processing TRIAL2")
 
     def process_blocks(self):
 
@@ -392,9 +389,11 @@ class TRIAL2:
                     i -= 1
 
                 # We also need to remove the j to exception handler
-                elif i_excpt_addr in l_params.split(' ')[0]:
-                    i_objdump_file.remove(i_objdump_file[i])
-                    i -= 1
+                l_params = (l_params.split(' ')[0]).split(",")
+                for j in range(len(l_params)):
+                    if i_excpt_addr == l_params[j]:
+                        i_objdump_file.remove(i_objdump_file[i])
+                        i -= 1
             i += 1
         return i_s_file, i_objdump_file
 
@@ -432,5 +431,5 @@ class TRIAL2:
                                     i_matching_instruction += 1
                         if i_matching_instruction > 1:
                             print("Some how we updated the same opcode in two places. Please check manually")
-                            raise Exception
+                            #raise Exception
         return i_map
