@@ -19,6 +19,14 @@ import pathlib
 
 from os import path
 
+#---------Set sys.path for CFE_MAIN execution---------------------------------------
+full_path = os.path.abspath(os.path.dirname(sys.argv[0])).split('riscv')[0]
+sys.path.append(full_path)
+# Walk path and append to sys.path
+for root, dirs, files in os.walk(full_path):
+    for dir in dirs:
+        sys.path.append(os.path.join(root, dir))
+
 
 def usage():
     print("Usage: Please provide a assembly file or an executable file")
