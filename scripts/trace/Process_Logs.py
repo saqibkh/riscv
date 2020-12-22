@@ -29,6 +29,7 @@ for root, dirs, files in os.walk(full_path):
         sys.path.append(os.path.join(root, dir))
 
 import instructions
+import log_utils
 
 def usage():
     print("Usage: Please provide a log file <file>_extended.log or <file>_extended_debug.log")
@@ -70,7 +71,15 @@ def main(argv):
     if ("_extended.log" not in l_file_name) and ("_extended_debug.log" not in l_file_name):
         print("Please provide a <file>_extended.log or <file>_extended_debug.log")
         sys.exit()
-    print("Hello")
+
+    # Read input file into a local variable
+    i_logs = log_utils.readfile(l_file)
+
+    # Check if the instructions within the log file are accounted for in the instruction.py file.
+    # Otherwise update the instruction.py file
+    log_utils.check_instructions(i_logs)
+
+    print("Finished processing logs")
 
 
 
