@@ -72,12 +72,9 @@ def main(argv):
         print("Please provide a <file>_extended.log or <file>_extended_debug.log")
         sys.exit()
 
-    # Read input file into a local variable
-    i_logs = log_utils.readfile(l_file)
-
     # Check if the instructions within the log file are accounted for in the instruction.py file.
     # Otherwise update the instruction.py file
-    log_utils.check_instructions(i_logs)
+    i_instruction_map = log_utils.Instruction_Map(l_file)
 
     print("Finished processing logs")
 
