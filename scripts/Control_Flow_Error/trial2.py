@@ -7,6 +7,7 @@ from os import path
 
 
 def update_signature(i_obj_old, i_obj_new, i_file):
+    is_updated = False
     i_sig_old = i_obj_old.compile_time_sig
     i_sig_new = i_obj_new.compile_time_sig
 
@@ -16,6 +17,9 @@ def update_signature(i_obj_old, i_obj_new, i_file):
     for i in range(len(i_sig_old)):
         # If signature is not the same then update the .s file
         if i_sig_old[i] != i_sig_new[i]:
+            x = i_sig_old[i]
+            y = i_sig_new[i]
+            is_updated = True
             with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
                 for line in file:
                     print(line.replace(i_sig_old[i], i_sig_new[i]), end='')
@@ -23,9 +27,12 @@ def update_signature(i_obj_old, i_obj_new, i_file):
     for i in range(len(i_D_sig_old)):
         # If signature is not the same then update the .s file
         if i_D_sig_old[i] != i_D_sig_new[i]:
+            is_updated = True
             with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
                 for line in file:
                     print(line.replace(i_D_sig_old[i], i_D_sig_new[i]), end='')
+
+    return is_updated
 
 class TRIAL2:
     def __init__(self, i_map, i_generate_signature_only=False):

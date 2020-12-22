@@ -51,7 +51,7 @@ def checkFileExists(i_filename):
 
 
 def main(argv):
-    l_enable_extras = True
+    l_enable_extras = False
 
     if len(sys.argv) == 1:
         usage()
@@ -153,17 +153,23 @@ def main(argv):
     compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
 
     ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
-    trial2_s_intermediate_file = utils.readfile(trial2_file)
-    trial2_obj_intermediate_file = utils.readfile(trial2_file.split(".s")[0] + ".objdump")
-    trial2_s_intermediate_file, trial2_obj_intermediate_file = i_trial2.remove_signature_checking(
-        trial2_s_intermediate_file, trial2_obj_intermediate_file)
-    map_new = utils.ControlFlowMapRevised(trial2_s_intermediate_file, trial2_obj_intermediate_file)
-    map_updated = i_trial2.update_opcodes(map, map_new)
-    i_trial2_new = trial2.TRIAL2(map_updated, i_generate_signature_only=True)
+    update_file_required = True
+    # loop until we get the same signature values
+    while update_file_required:
+        trial2_s_intermediate_file = utils.readfile(trial2_file)
+        trial2_obj_intermediate_file = utils.readfile(trial2_file.split(".s")[0] + ".objdump")
+        trial2_s_intermediate_file, trial2_obj_intermediate_file = i_trial2.remove_signature_checking(
+            trial2_s_intermediate_file, trial2_obj_intermediate_file)
+        map_new = utils.ControlFlowMapRevised(trial2_s_intermediate_file, trial2_obj_intermediate_file)
+        map_new = i_trial2.update_opcodes(map, map_new)
+        i_trial2_new = trial2.TRIAL2(map_new, i_generate_signature_only=True)
+        # We have old and new signatures in i_trial2 and i_trial2_new respectively.
+        update_file_required = trial2.update_signature(i_trial2, i_trial2_new, trial2_file)
+        compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
 
-    # We have old and new signatures in i_trial2 and i_trial2_new respectively.
-    trial2.update_signature(i_trial2, i_trial2_new, trial2_file)
-    compileUtil.compile_s(trial2_file)  # Compile the newly created assembly file to generate a static binary
+        i_trial2 = i_trial2_new
+        map = map_new
+
     print("Finished processing TRIAL2")
 #####################################################################################################################
 
