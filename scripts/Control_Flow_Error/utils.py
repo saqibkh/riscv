@@ -8,12 +8,8 @@ import datetime
 import random
 import subprocess
 import re
+import instructions
 from os import path
-
-#
-branch_unconditional_instructions = ['b', 'j', 'jr', 'jal', 'ret', 'call']
-branch_conditional_instructions = ['bne', 'beq', 'blt', 'bge', 'bnez', 'ble', 'bltz', 'bgtz', 'bgt', 'blez', 'beqz']
-
 
 signature_checking_registers = ['t6', 's11', 's10']
 
@@ -52,7 +48,7 @@ def is_branch_instruction(i_line):
     # Definition: This function checks if the instruction defined in i_line is a branch instruction of not
     # Example: 'jal\tra,10150 <countSetBits>'
     inst = i_line.split('\t')[0]
-    if (inst in branch_conditional_instructions) or (inst in branch_unconditional_instructions):
+    if (inst in instructions.branch_conditional_instructions) or (inst in instructions.branch_unconditional_instructions):
         return True
     else:
         return False
@@ -94,12 +90,12 @@ def get_jump_address(i_line):
         return
 
     i_inst, i_data = i_line.split('\t')
-    if i_inst in branch_unconditional_instructions:
+    if i_inst in instructions.branch_unconditional_instructions:
         if (i_inst == 'jal'):  # jal     ra,1031c <printf>
             return (i_data.split(',')[1]).split(' ')[0]
         else:
             return i_data.split(' ')[0]
-    elif i_inst in branch_conditional_instructions:
+    elif i_inst in instructions.branch_conditional_instructions:
         # Example 'blt a5,a4,1019e <bubbleSort+0x18>'
         return (i_data.split(' ')[0]).split(',')[-1]
     else:
@@ -429,7 +425,7 @@ class ControlFlowMapRevised:
             # 1) unconditional --> only 1 return address in the last instruction
             # 2) conditional --> 1 return address in last instruction  & 1 return address is last_instruction + opcode
             # 3) not a branch instruction --> 1 return address is last_instruction + last_opcode
-            if i_inst in branch_unconditional_instructions:
+            if i_inst in instructions.branch_unconditional_instructions:
 
                 # Need to return to the calling function.
                 # Check the objdump file and extract all instances/lines that calls this particular function
@@ -451,7 +447,7 @@ class ControlFlowMapRevised:
                             1]
                     self.blocks[i].next_block_address.append(return_addr)
 
-            elif i_inst in branch_conditional_instructions:
+            elif i_inst in instructions.branch_conditional_instructions:
                 return_addr = get_jump_address(i_line)
                 if self.is_defined_address(return_addr):
                     self.blocks[i].next_block_address.append(return_addr)

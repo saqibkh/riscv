@@ -36,6 +36,7 @@ import ecca
 import rscfc
 import trial1
 import trial2
+import instructions
 
 
 def usage():
