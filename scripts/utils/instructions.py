@@ -12,7 +12,7 @@ branch_instructions = branch_unconditional_instructions + branch_conditional_ins
 
 ########################################################################################################
 arithmetic_instructions = ["add", "addi", "sub", "auipc", "lui", "andi", "addiw", "addw", "subw",
-                           "remu", "rem", "mul", "mulh", "div", "divu",
+                           "remu", "rem", "mul", "mulh", "div", "divu", "remw", "remuw", "divw", "divuw",
                            "li", "mv",
                            "c.add", "c.addi", "c.sub", "c.addiw", "c.addi16sp", "c.andi", "c.addi4spn", "c.subw",
                            "c.li", "c.mv", "c.lui", "c.addw",
