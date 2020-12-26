@@ -105,6 +105,8 @@ class ML1:
             pickle.dump(model, open(self.model_files[i], 'wb'))
 
         # Print Results:
+        sys.stdout.flush()
         print("\n\nHere are the accuracy scores: ")
         for i in range(len(self.models)):
             print(self.models[i][0] + ":" + str(l_accuracy_scores[i]))
+        sys.stdout.flush()
