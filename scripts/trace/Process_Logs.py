@@ -17,6 +17,7 @@ import getopt
 import random
 import subprocess
 import os
+import csv
 
 from os import path
 
@@ -30,6 +31,7 @@ for root, dirs, files in os.walk(full_path):
 
 import instructions
 import log_utils
+import ML1
 
 def usage():
     print("Usage: Please provide a log file <file>_extended.log or <file>_extended_debug.log")
@@ -76,6 +78,7 @@ def main(argv):
     # Otherwise update the instruction.py file
     i_instruction_map = log_utils.Instruction_Map(l_file)
 
+    i_ML1 = ML1.ML1(i_instruction_map)
     print("Finished processing logs")
 
 

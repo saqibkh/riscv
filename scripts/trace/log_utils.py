@@ -12,6 +12,10 @@ import os
 
 import instructions
 
+def checkFileExists(i_filename):
+    if not utils.checkFileExists(i_filename):
+        print("file: " + i_filename + " doesn't exist.")
+        raise Exception
 
 def readfile(filename):
     ##
@@ -25,6 +29,8 @@ def readfile(filename):
         lines = [line.rstrip() for line in f]
     return lines
 
+def split(word):
+    return [char for char in word]
 
 class Instruction_Map:
     def __init__(self, i_file):
@@ -32,6 +38,9 @@ class Instruction_Map:
         self.file = i_file
         self.log = readfile(i_file)
         self.map = []
+        self.opcode = []
+        self.address = []
+        self.instruction = []
         self.generate_map(self.log)
 
     def generate_map(self, i_file):
@@ -53,6 +62,19 @@ class Instruction_Map:
                 if i_instruction not in instructions.all_instructions:
                     print("The following instruction is not yet added to the master list of instruction: " + i_instruction)
                     raise Exception
+
+                # All addresses are 64-bits, so zero fill the address to occupy 64-bits
+                i_address_binary = split((bin(int(i_address, 16)).split('0b')[-1]).zfill(64))
+                i_address_binary = [int(j) for j in i_address_binary]
+                self.address.append(i_address_binary)
+
+                # All opcodes occupy 32-bits, so zero fill the address to occupy 8bytes or 32-bits
+                i_opcode_binary = split((bin(int(i_opcode, 16)).split('0b')[-1]).zfill(32))
+                i_opcode_binary = [int(j) for j in i_opcode_binary]
+                self.opcode.append(i_opcode_binary)
+
+                # Append the instruction
+                self.instruction.append(i_instruction)
 
                 i_object = [i_address, i_opcode, i_instruction]
                 for j in range(len(i_instruction_components)):
