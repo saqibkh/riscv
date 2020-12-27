@@ -76,7 +76,7 @@ class ML1:
         X = numpy.array(i_instruction_map.opcode)
         y = numpy.array(i_instruction_map.instruction)
 
-        X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.20, random_state=1)
+        X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.05, random_state=1)
 
         ############################################################################################
         # Make predictions
