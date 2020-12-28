@@ -80,7 +80,7 @@ def main(argv):
     i_instruction_map = log_utils.Instruction_Map(l_file)
 
     i_ML1 = ML1.ML1(i_instruction_map)
-    #i_ML2 = ML2.ML2(i_instruction_map)
+    i_ML2 = ML2.ML2(i_instruction_map)
     print("Finished processing logs")
 
 

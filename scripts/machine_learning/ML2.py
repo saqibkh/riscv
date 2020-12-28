@@ -27,7 +27,11 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
-from sklearn.datasets import make_classification
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import average_precision_score
+from sklearn.metrics import f1_score
+from sklearn.multioutput import MultiOutputClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -35,15 +39,9 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.cluster import AffinityPropagation
 from sklearn.cluster import Birch
 from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
-
-#########################################################
-#
-# Taken from https://machinelearningmastery.com/clustering-algorithms-with-python/
-# Includes 10 Clustering Algorithms with Python
-#
-#
-#########################################################
 
 
 import log_utils
@@ -62,19 +60,20 @@ class ML2:
 
         # Define all models here
         self.models = []
-        #self.models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
-        #self.models.append(('LDA', LinearDiscriminantAnalysis()))
-        #self.models.append(('KNN', KNeighborsClassifier()))
-        #self.models.append(('CART', DecisionTreeClassifier()))
-        #self.models.append(('NB', GaussianNB()))
-        #self.models.append(('SVM', SVC(gamma='auto')))
-        self.models.append(('AP', AffinityPropagation(damping=0.9)))
+        self.models.append(('LR_map', LogisticRegression(multi_class='multinomial')))
+        self.models.append(('LDA_map', LinearDiscriminantAnalysis()))
+        self.models.append(('KNN_map', KNeighborsClassifier()))
+        self.models.append(('CART_map', DecisionTreeClassifier()))
+        self.models.append(('NB_map', GaussianNB()))
+        self.models.append(('SVM_map', SVC(gamma='auto')))
+        self.models.append(('NBC_map', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)))
+        self.models.append(('RFC_map', RandomForestClassifier()))
 
         # A list of all models that are stored on drive
         self.model_files = []
         self.loaded_models = [None] * len(self.models)
         for i in range(len(self.models)):
-            i_model_file = i_model_directory + self.models[i][0] + '_opcode_model.sav'
+            i_model_file = i_model_directory + self.models[i][0] + '_model.sav'
             self.model_files.append(i_model_file)
 
             # If model exists, then load the model
@@ -83,29 +82,17 @@ class ML2:
                 self.loaded_models[i] = loaded_model
 
         # Delete useless variables
-        del loaded_model, i_model_file, i, i_model_directory
+        del i_model_file, i, i_model_directory
 
         # Start processing the input data
-        X, _ = make_classification(n_samples=1000, n_features=2, n_informative=2, n_redundant=0, n_clusters_per_class=1,
-                                   random_state=4)
-        model = AffinityPropagation()
-        model.fit(X)
-        yhat = model.predict(X)
-
-
         X = numpy.array(i_instruction_map.opcode)
-        y = numpy.array(i_instruction_map.instruction)
-        model = AffinityPropagation()
-        model.fit(X)
-        yhat = model.predict(X)
+        y = (numpy.array(i_instruction_map.map))[:,2:]
 
-        #X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.05, random_state=1)
+        X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.1, random_state=1)
 
         ############################################################################################
         # Make predictions
-        l_accuracy_scores = [None] * len(self.models)
-        l_confusion_matrix = [None] * len(self.models)
-        l_classification_report = [None] * len(self.models)
+        l_scores = [None] * len(self.models)
         for i in range(len(self.models)):
 
             try:
@@ -114,22 +101,22 @@ class ML2:
                 else:
                     model = self.loaded_models[i]
 
-                model.fit(X_train, Y_train)
-                predictions = model.predict(X_validation)
+                classifier = MultiOutputClassifier(model)
+                classifier.fit(X_train, Y_train)
+                predictions = classifier.predict(X_validation)
             except Exception as e:
                 print("Unable to process the model " + self.models[i][0])
+                print("Reason: " + str(e.args))
                 continue
 
-            l_accuracy_scores[i] = accuracy_score(Y_validation, predictions)
-            l_confusion_matrix[i] = confusion_matrix(Y_validation, predictions)
-            l_classification_report[i] = classification_report(Y_validation, predictions)
+            l_scores[i] = classifier.score(X_validation,numpy.array(predictions))
 
             # Save the models
             pickle.dump(model, open(self.model_files[i], 'wb'))
 
         # Print Results:
         sys.stdout.flush()
-        print("\n\nHere are the accuracy scores: ")
+        print("\n\nHere are the accuracy scores for all outputs: ")
         for i in range(len(self.models)):
-            print(self.models[i][0] + ":" + str(l_accuracy_scores[i]))
+            print(self.models[i][0] + ":" + str(l_scores[i]))
         sys.stdout.flush()
