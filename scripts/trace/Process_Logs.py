@@ -79,6 +79,7 @@ def main(argv):
     # Otherwise update the instruction.py file
     i_instruction_map = log_utils.Instruction_Map(l_file)
 
+    print("Total number of instructions to process= " + str(len(i_instruction_map.map)))
     i_ML1 = ML1.ML1(i_instruction_map)
     i_ML2 = ML2.ML2(i_instruction_map)
     print("Finished processing logs")

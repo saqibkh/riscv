@@ -116,7 +116,7 @@ class ML1:
 
         # Print Results:
         sys.stdout.flush()
-        print("\n\nHere are the accuracy scores: ")
+        print("\n\nHere are the accuracy scores for instruction opcode: ")
         for i in range(len(self.models)):
             print(self.models[i][0] + ":" + str(l_accuracy_scores[i]))
         sys.stdout.flush()
