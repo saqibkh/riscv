@@ -32,6 +32,7 @@ for root, dirs, files in os.walk(full_path):
 import instructions
 import log_utils
 import ML1
+import ML2
 
 def usage():
     print("Usage: Please provide a log file <file>_extended.log or <file>_extended_debug.log")
@@ -79,6 +80,7 @@ def main(argv):
     i_instruction_map = log_utils.Instruction_Map(l_file)
 
     i_ML1 = ML1.ML1(i_instruction_map)
+    #i_ML2 = ML2.ML2(i_instruction_map)
     print("Finished processing logs")
 
 

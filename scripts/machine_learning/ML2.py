@@ -27,6 +27,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import classification_report
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import accuracy_score
+from sklearn.datasets import make_classification
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
@@ -34,16 +35,22 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
 from sklearn.cluster import AffinityPropagation
 from sklearn.cluster import Birch
 from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
+
+#########################################################
+#
+# Taken from https://machinelearningmastery.com/clustering-algorithms-with-python/
+# Includes 10 Clustering Algorithms with Python
+#
+#
+#########################################################
 
 
 import log_utils
 
 model_directory = '/home/saqib/jenkins/data/ML_models/'
 
-class ML1:
+class ML2:
     def __init__(self, i_instruction_map, i_model_directory=model_directory):
         self.names = ['opcode0', 'opcode1', 'opcode2', 'opcode3', 'opcode4', 'opcode5', 'opcode6', 'opcode7', 'opcode8', 'opcode9',
                       'opcode10', 'opcode11', 'opcode12', 'opcode13', 'opcode14', 'opcode15', 'opcode16', 'opcode17', 'opcode18', 'opcode19',
@@ -55,14 +62,13 @@ class ML1:
 
         # Define all models here
         self.models = []
-        self.models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
-        self.models.append(('LDA', LinearDiscriminantAnalysis()))
-        self.models.append(('KNN', KNeighborsClassifier()))
-        self.models.append(('CART', DecisionTreeClassifier()))
-        self.models.append(('NB', GaussianNB()))
-        self.models.append(('SVM', SVC(gamma='auto')))
-        self.models.append(('NBC', MultinomialNB(alpha=1.0, class_prior=None, fit_prior=True)))
-        self.models.append(('RFC', RandomForestClassifier()))
+        #self.models.append(('LR', LogisticRegression(solver='liblinear', multi_class='ovr')))
+        #self.models.append(('LDA', LinearDiscriminantAnalysis()))
+        #self.models.append(('KNN', KNeighborsClassifier()))
+        #self.models.append(('CART', DecisionTreeClassifier()))
+        #self.models.append(('NB', GaussianNB()))
+        #self.models.append(('SVM', SVC(gamma='auto')))
+        self.models.append(('AP', AffinityPropagation(damping=0.9)))
 
         # A list of all models that are stored on drive
         self.model_files = []
@@ -80,10 +86,20 @@ class ML1:
         del loaded_model, i_model_file, i, i_model_directory
 
         # Start processing the input data
+        X, _ = make_classification(n_samples=1000, n_features=2, n_informative=2, n_redundant=0, n_clusters_per_class=1,
+                                   random_state=4)
+        model = AffinityPropagation()
+        model.fit(X)
+        yhat = model.predict(X)
+
+
         X = numpy.array(i_instruction_map.opcode)
         y = numpy.array(i_instruction_map.instruction)
+        model = AffinityPropagation()
+        model.fit(X)
+        yhat = model.predict(X)
 
-        X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.05, random_state=1)
+        #X_train, X_validation, Y_train, Y_validation = train_test_split(X, y, test_size=0.05, random_state=1)
 
         ############################################################################################
         # Make predictions
