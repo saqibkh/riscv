@@ -55,3 +55,6 @@ floating_point_instructions = ['fmv.w.x']
 
 all_instructions = all_arithmetic_instructions + branch_instructions + load_store_instructions +\
                    extra_instructions + floating_point_instructions
+
+reg_modified_instructions = all_arithmetic_instructions + load_instructions + branch_unconditional_instructions
+reg_unmodified_instructions = store_instructions + branch_conditional_instructions
