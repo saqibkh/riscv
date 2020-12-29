@@ -5,3 +5,4 @@
 *.readelf
 *.idea
 *.bak
+*.pyc
