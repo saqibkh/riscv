@@ -10,7 +10,7 @@ temporaries = ['t0', 't1', 't2']
 saved_register_frame_pointer = ['s0', 'fp'] #Both s0 and fp are the same register ==> x8
 function_arg_return_values = ['a0', 'a1']
 function_arguments = ['a2', 'a3', 'a4', 'a5', 'a6', 'a7']
-saved_registers = ['s2, s3, s4, s5, s6, s7, s8, s9, s10, s11']
+saved_registers = ['s2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11']
 temporaries = ['t3', 't4', 't5', 't6']
 
 regular_registers = hard_wire_zero + return_address + stack_pointer + global_pointer + thread_pointer + temporaries \

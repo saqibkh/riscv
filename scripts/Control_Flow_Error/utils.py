@@ -10,6 +10,7 @@ import subprocess
 import re
 import instructions
 import registers
+import function_map
 from os import path
 
 signature_checking_registers = ['t6', 's11', 's10']
@@ -21,6 +22,7 @@ exception_handler_address = '100'  # --> 0x64
 exception_handler_address = '100'
 
 ''' Commonly used functions will be defined here'''
+
 
 # This function returns a list of registers that were modified
 def registers_modified(i_map):
@@ -48,6 +50,7 @@ def registers_modified(i_map):
 
     i_registers_modified = remove_duplicates(i_registers_modified)
     return i_registers_modified
+
 
 def registers_used(i_map):
     i_unused_operands = []
@@ -82,6 +85,7 @@ def remove_duplicates(i_list):
             final_list.append(num)
     return final_list
 
+
 def is_number(s):
     try:
         float(s)
@@ -96,6 +100,7 @@ def is_number(s):
     except (TypeError, ValueError):
         pass
     return False
+
 
 def readfile(filename):
     ##
@@ -123,7 +128,8 @@ def is_branch_instruction(i_line):
     # Definition: This function checks if the instruction defined in i_line is a branch instruction of not
     # Example: 'jal\tra,10150 <countSetBits>'
     inst = i_line.split('\t')[0]
-    if (inst in instructions.branch_conditional_instructions) or (inst in instructions.branch_unconditional_instructions):
+    if (inst in instructions.branch_conditional_instructions) or (
+            inst in instructions.branch_unconditional_instructions):
         return True
     else:
         return False
@@ -135,6 +141,7 @@ def get_instruction(i_line):
     line = i_line.split('\t')[0]
     return line
 
+
 def is_instruction_signature_checking_asm(i_line):
     i_line = i_line.split('\t')[-1]
     i_params = i_line.split(',')
@@ -143,6 +150,7 @@ def is_instruction_signature_checking_asm(i_line):
             if signature_checking_registers[j] == i_params[i]:
                 return True
     return False
+
 
 def is_signature_checking_register(i_line):
     i_params = i_line.split(',')
@@ -238,7 +246,8 @@ def generate_instruction_mapping(self):
                         # It is possible that sw be expanded to two instructions lui and sw
                         i_next_asm = instruction_map_asm[i_inst + 1].split('\t')[0]
                         if i_next_asm == i_inst_obj:
-                            instruction_map_asm[i_inst] = instruction_map_asm[i_inst]+";"+instruction_map_asm[i_inst+1]
+                            instruction_map_asm[i_inst] = instruction_map_asm[i_inst] + ";" + instruction_map_asm[
+                                i_inst + 1]
                             del instruction_map_asm[i_inst + 1]
                             i_inst += 1
                         else:
@@ -399,6 +408,7 @@ class ControlFlowMapRevised:
         self.file_obj = i_obj
         self.blocks = []
         self.functions = Functions()
+        self.function_map = function_map.FunctionMap(i_asm)
 
         ''' Here we begin processing the asm and obj file to extract the functions and subsequently the
             control flow graphs'''

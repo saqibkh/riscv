@@ -2,15 +2,17 @@ import datetime
 import random
 import subprocess
 import utils
+import registers
+import instructions
 import fileinput
 from os import path
 
 ###################################################################################################################
 #
 # This is a new type of CFE detection technique where the
-#
-#
-#
+# 1) We check that unused register values are not modified @ the end of program
+# 2) return address (ra) and stack pointer (sp) are restored back to their value at end of each function
+# 3)
 #
 #
 ###################################################################################################################
@@ -33,10 +35,13 @@ class TRIAL3:
         utils.generate_instruction_mapping(self)
 
         self.registers_used = []
+        self.registers_unused = []
         self.registers_modified = []
         self.registers_unmodified = []
         self.registers_different_value_at_end = []
         self.registers_same_value_at_end = []
+
+        # Start processing the registers
         self.process_registers()
 
         # Generate the new assembly file
@@ -58,6 +63,11 @@ class TRIAL3:
                 pass
             else:
                 self.registers_unmodified.append(self.registers_used[i])
+
+        for i in range(len(registers.all_registers)):
+            if not registers.all_registers[i] in self.registers_used:
+                self.registers_unused.append(registers.all_registers[i])
+
 
     def process_blocks(self):
         pass
