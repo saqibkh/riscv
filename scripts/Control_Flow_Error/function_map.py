@@ -27,6 +27,11 @@ class Function:
         # as .L2, .L3 etc.
         self.list_blocks_names = []
 
+        # Memory Addresses for the start and end of the function
+        self.starting_address = None
+        self.ending_address = None
+        self.instructions = None
+
 
 class FunctionMap:
     ##
@@ -34,10 +39,11 @@ class FunctionMap:
     #              processes the CFG blocks
     #
     # Inputs: f_asm and f_obj objects
-    def __init__(self, i_asm):
+    def __init__(self, i_asm, i_util_functions):
         self.functions = []
 
         self.get_functions(i_asm)
+        self.get_instructions(i_util_functions)
 
     def get_functions(self, i_asm):
         i_found_function = False
@@ -68,6 +74,23 @@ class FunctionMap:
 
         # The append the last function to the self.functions list
         self.functions.append(i_func)
+
+        # Remove any duplicate sub_functions
+        for i in range(len(self.functions)):
+            i_new_list = []
+            for j in range(len(self.functions[i].list_sub_functions)):
+                if not self.functions[i].list_sub_functions[j] in i_new_list:
+                    i_new_list.append(self.functions[i].list_sub_functions[j])
+            # Update the entire list
+            self.functions[i].list_sub_functions = i_new_list
+
+    def get_instructions(self, i_util_functions):
+        for i in range(len(self.functions)):
+            for j in range(len(i_util_functions.f_names)):
+                if self.functions[i].name == i_util_functions.f_names[j]:
+                    self.functions[i].starting_address = i_util_functions.f_address[j]
+                    self.functions[i].ending_address = i_util_functions.f_instructions[j].address[-1]
+                    self.functions[i].instructions = i_util_functions.f_instructions[j]
 
 
 ''' End of class definitions'''

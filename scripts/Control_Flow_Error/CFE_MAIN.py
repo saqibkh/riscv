@@ -65,6 +65,7 @@ def main(argv):
             if argv[i + 1] == '--enable-extras':
                 l_enable_extras = True
 
+    print("Processing file: " + argv[0])
     file_c = argv[0]
     ''' Create an assembly file and an objdump file from the C program file provided to us '''
     compileUtil.compile_c(file_c)

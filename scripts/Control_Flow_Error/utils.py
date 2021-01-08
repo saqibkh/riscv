@@ -408,7 +408,7 @@ class ControlFlowMapRevised:
         self.file_obj = i_obj
         self.blocks = []
         self.functions = Functions()
-        self.function_map = function_map.FunctionMap(i_asm)
+        self.function_map = None
 
         ''' Here we begin processing the asm and obj file to extract the functions and subsequently the
             control flow graphs'''
@@ -449,6 +449,12 @@ class ControlFlowMapRevised:
         ##
         # 6. Get inputs for each block also called the previous block
         self.get_input_paths()
+
+
+        ##
+        # 7. Get the function map
+        self.function_map = function_map.FunctionMap(i_asm, self.functions)
+
 
         # print("Successfully created the Control Flow Graph")
         # '''                                                                     '''
