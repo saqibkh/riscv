@@ -178,7 +178,8 @@ def main(argv):
 
 #####################################################################################################################
     # Generate TRIAL3
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
+                                      enable_functionMap=True, C_File=file_c)
     i_trial3 = trial3.TRIAL3(map)
     trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
     with open(trial3_file, 'w') as filehandle:

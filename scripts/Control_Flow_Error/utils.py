@@ -24,6 +24,32 @@ exception_handler_address = '100'
 ''' Commonly used functions will be defined here'''
 
 
+def registers_modified_FunctionMap(i_inst_list):
+    i_registers_modified = []
+    for i in range(len(i_inst_list)):
+        i_entries = i_inst_list[i]
+        i_entries = i_entries.split(';')
+        for k in range(len(i_entries)):
+            i_entry = i_entries[k]
+
+            # Make sure there are operands within this instruction (ret has no operands)
+            if '\t' in i_entry:
+                i_instruction = i_entry.split('\t')[0]
+                if i_instruction in instructions.reg_modified_instructions:
+                    i_operand = (i_entry.split('\t')[-1]).split(',')[0]
+                    if i_operand in registers.all_registers:
+                        i_registers_modified.append(i_operand)
+                elif i_instruction in instructions.reg_unmodified_instructions:
+                    pass
+                else:
+                    print("Unrecognized instruction. Please add the following instruction to"
+                          "either modified or unmodified instruction list.")
+                    print("Unrecognized instruction= " + i_instruction)
+
+    i_registers_modified = remove_duplicates(i_registers_modified)
+    return i_registers_modified
+
+
 # This function returns a list of registers that were modified
 def registers_modified(i_map):
     i_registers_modified = []
@@ -50,6 +76,32 @@ def registers_modified(i_map):
 
     i_registers_modified = remove_duplicates(i_registers_modified)
     return i_registers_modified
+
+
+def registers_used_FunctionMap(i_inst_list):
+    i_reg_list = []
+    i_unused_operands = []
+    for i in range(len(i_inst_list)):
+        i_entries = i_inst_list[i]
+        i_entries = i_entries.split(';')
+        for k in range(len(i_entries)):
+            i_entry = i_entries[k]
+
+            # Make sure there are operands within this instruction (ret has no operands)
+            if '\t' in i_entry:
+                i_operands = i_entry.split('\t')[-1]
+                i_operands = i_operands.split(',')
+                for m in range(len(i_operands)):
+                    if i_operands[m] in registers.all_registers:
+                        i_reg_list.append(i_operands[m])
+                    elif (i_operands[m].split('(', 1)[-1]).split(')', 1)[0] in registers.all_registers:
+                        i_reg_list.append((i_operands[m].split('(', 1)[-1]).split(')', 1)[0])
+                    else:
+                        i_unused_operands.append(i_operands[m])
+
+    i_reg_list = remove_duplicates(i_reg_list)
+    i_unused_operands = remove_duplicates(i_unused_operands)
+    return i_reg_list
 
 
 def registers_used(i_map):
@@ -403,7 +455,8 @@ class ControlFlowMapRevised:
     #              processes the CFG blocks
     #
     # Inputs: f_asm and f_obj objects
-    def __init__(self, i_asm, i_obj):
+    #         enable_functionMap = Creates a map of the functions within this program
+    def __init__(self, i_asm, i_obj, enable_functionMap=False, C_File=None):
         self.file_asm = i_asm
         self.file_obj = i_obj
         self.blocks = []
@@ -450,11 +503,10 @@ class ControlFlowMapRevised:
         # 6. Get inputs for each block also called the previous block
         self.get_input_paths()
 
-
         ##
         # 7. Get the function map
-        self.function_map = function_map.FunctionMap(i_asm, self.functions)
-
+        if enable_functionMap:
+            self.function_map = function_map.FunctionMap(C_File, i_asm, self.functions)
 
         # print("Successfully created the Control Flow Graph")
         # '''                                                                     '''

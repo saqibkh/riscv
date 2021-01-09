@@ -9,6 +9,8 @@ import subprocess
 import re
 import instructions
 import registers
+import utils
+import execute_spike
 from os import path
 
 ''' Start of class definitions'''
@@ -32,6 +34,17 @@ class Function:
         self.ending_address = None
         self.instructions = None
 
+        # Holds the initial and final values of all registers
+        self.initial_register_values = [[]]
+        self.final_register_values = [[]]
+
+        # List of registers that are used within this function
+        self.registers_used = []
+        # List of registers that are modified during this function (i.e. is a subset of registers_used
+        self.registers_modified = []
+        # List of registers that are not modified during this function (i.e. remaining subset of registers_used
+        self.registers_unmodified = []
+
 
 class FunctionMap:
     ##
@@ -39,11 +52,40 @@ class FunctionMap:
     #              processes the CFG blocks
     #
     # Inputs: f_asm and f_obj objects
-    def __init__(self, i_asm, i_util_functions):
+    def __init__(self, i_C_File, i_asm, i_util_functions):
         self.functions = []
 
         self.get_functions(i_asm)
         self.get_instructions(i_util_functions)
+        self.process_registers(i_C_File)
+
+    def process_registers(self, i_C_File):
+
+        # Get a value of all registers at the start and end of each function
+        for i in range(len(self.functions)):
+            self.functions[i].initial_register_values = execute_spike.get_registers_values_at_address(
+                i_C_File.rsplit('.c')[0], self.functions[i].starting_address)
+            self.functions[i].final_register_values = execute_spike.get_registers_values_at_address(
+                i_C_File.rsplit('.c')[0], self.functions[i].ending_address)
+
+        # Get a list of registers that are used
+        for i in range(len(self.functions)):
+            self.functions[i].registers_used = utils.registers_used_FunctionMap(
+                self.functions[i].instructions.instruction)
+
+        # Get a list of registers that are modified
+        for i in range(len(self.functions)):
+            self.functions[i].registers_modified = utils.registers_modified_FunctionMap(
+                self.functions[i].instructions.instruction)
+
+        # Fill the list of registers that weren't modified in the function
+        for i in range(len(self.functions)):
+            for j in range(len(self.functions[i].registers_used)):
+                i_reg = self.functions[i].registers_used[j]
+                if i_reg in self.functions[i].registers_modified:
+                    continue
+                else:
+                    self.functions[i].registers_unmodified.append(i_reg)
 
     def get_functions(self, i_asm):
         i_found_function = False

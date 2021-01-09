@@ -7,7 +7,7 @@ stack_pointer = ['sp']
 global_pointer = ['gp']
 thread_pointer = ['tp']
 temporaries = ['t0', 't1', 't2']
-saved_register_frame_pointer = ['s0', 'fp'] #Both s0 and fp are the same register ==> x8
+saved_register_frame_pointer = ['s0'] #Both s0 and fp are the same register ==> x8
 function_arg_return_values = ['a0', 'a1']
 function_arguments = ['a2', 'a3', 'a4', 'a5', 'a6', 'a7']
 saved_registers = ['s2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11']
