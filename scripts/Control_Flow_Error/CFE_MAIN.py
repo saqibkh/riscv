@@ -86,6 +86,20 @@ def main(argv):
     #################################################################
 
 #####################################################################################################################
+    # Generate TRIAL3
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
+                                      enable_functionMap=True, C_File=file_c)
+    i_trial3 = trial3.TRIAL3(map)
+    trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
+    with open(trial3_file, 'w') as filehandle:
+        for listitem in i_trial3.new_asm_file:
+            filehandle.write('%s\n' % listitem)
+    compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
+    del map, i_trial3, trial3_file
+#####################################################################################################################
+
+
+#####################################################################################################################
     # Generate CFCSS (Control Flow Checking by Software Signature)
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
     i_cfcss = cfcss.CFCSS(map)
@@ -174,19 +188,6 @@ def main(argv):
         map = map_new
 
     print("Finished processing TRIAL2")
-#####################################################################################################################
-
-#####################################################################################################################
-    # Generate TRIAL3
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
-                                      enable_functionMap=True, C_File=file_c)
-    i_trial3 = trial3.TRIAL3(map)
-    trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
-    with open(trial3_file, 'w') as filehandle:
-        for listitem in i_trial3.new_asm_file:
-            filehandle.write('%s\n' % listitem)
-    compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
-    del map, i_trial3, trial3_file
 #####################################################################################################################
 
 #####################################################################################################################

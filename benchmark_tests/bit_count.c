@@ -17,7 +17,7 @@ unsigned int countSetBits(unsigned int n)
 /* Program to test function countSetBits */
 int main() 
 { 
-	int i = 212353459; 
+	int i = 212353459;
 	printf("Number of bits = %d\n", countSetBits(i)); 
 	return 0; 
 }

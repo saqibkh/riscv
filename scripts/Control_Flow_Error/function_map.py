@@ -31,7 +31,7 @@ class Function:
 
         # Memory Addresses for the start and end of the function
         self.starting_address = None
-        self.ending_address = None
+        self.ending_address = []
         self.instructions = None
 
         # Holds the initial and final values of all registers
@@ -127,6 +127,9 @@ class FunctionMap:
             self.functions[i].list_sub_functions = i_new_list
 
     def get_instructions(self, i_util_functions):
+        # TODO: It is possible that there are more than 1 possible return calls within each function (besides the one
+        #       at the very end of instruction stream). Currently we aren't handling this case.
+        #
         for i in range(len(self.functions)):
             for j in range(len(i_util_functions.f_names)):
                 if self.functions[i].name == i_util_functions.f_names[j]:

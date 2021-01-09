@@ -34,15 +34,6 @@ class TRIAL3:
         # Generate instruction mapping between .s and .objdump file instructions
         utils.generate_instruction_mapping(self)
 
-        self.registers_used = []
-        self.registers_unused = []
-        self.registers_modified = []
-        self.registers_unmodified = []
-        self.registers_different_value_at_end = []
-        self.registers_same_value_at_end = []
-
-        # Start processing the registers
-        self.process_registers()
 
         # Generate the new assembly file
         #self.generate_TRIAL3_file_updated()
