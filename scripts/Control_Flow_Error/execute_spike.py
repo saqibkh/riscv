@@ -71,7 +71,7 @@ def get_memory_data_at_address(i_executable_file, i_address, i_mem_location):
 
 
 # Returns the data stored in the memory location
-def get_memory_datas(i_executable_file, i_mem_location):
+def get_memory_data(i_executable_file, i_mem_location):
     child = execute_spike(i_executable_file)
     cmd = "mem " + i_mem_location
     child.sendline(cmd)
