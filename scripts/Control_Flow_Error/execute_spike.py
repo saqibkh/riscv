@@ -18,6 +18,14 @@ import registers
 def get_registers_values_at_address(i_executable_file, i_address):
     i_reg_list = []
 
+    if isinstance(i_address, list):
+        print("Please provide a string of address instead of a list")
+        return None
+
+    if i_address is None:
+        print("Failed to provide address.")
+        return None
+
     # child is a process that triggers the spike simulator
     child = execute_spike_address(i_executable_file, i_address)
 
@@ -42,6 +50,11 @@ def get_registers_values_at_address(i_executable_file, i_address):
 
 
 def get_register_at_address(i_executable_file, i_address, i_register):
+
+    if i_address is None:
+        print("Failed to provide address.")
+        return None
+
     child = execute_spike_address(i_executable_file, i_address)
 
     cmd = "reg 0 " + i_register
@@ -52,6 +65,11 @@ def get_register_at_address(i_executable_file, i_address, i_register):
 
 
 def get_floating_point_register_at_address(i_executable_file, i_address, i_floating_register):
+
+    if i_address is None:
+        print("Failed to provide address.")
+        return None
+
     child = execute_spike_address(i_executable_file, i_address)
     cmd = "fregs 0 " + i_floating_register
     child.sendline(cmd)
@@ -62,6 +80,15 @@ def get_floating_point_register_at_address(i_executable_file, i_address, i_float
 
 # Get the memory data after reaching the specified address
 def get_memory_data_at_address(i_executable_file, i_address, i_mem_location):
+
+    if i_address is None:
+        print("Failed to provide address.")
+        return None
+
+    if i_mem_location is None:
+        print("Failed to provide memory address.")
+        return None
+
     child = execute_spike_address(i_executable_file, i_address)
     cmd = "mem " + i_mem_location
     child.sendline(cmd)
@@ -72,6 +99,11 @@ def get_memory_data_at_address(i_executable_file, i_address, i_mem_location):
 
 # Returns the data stored in the memory location
 def get_memory_data(i_executable_file, i_mem_location):
+
+    if i_mem_location is None:
+        print("Failed to provide memory address.")
+        return None
+
     child = execute_spike(i_executable_file)
     cmd = "mem " + i_mem_location
     child.sendline(cmd)
@@ -81,6 +113,11 @@ def get_memory_data(i_executable_file, i_mem_location):
 
 
 def execute_spike_address(i_executable_file, i_address):
+
+    if i_address is None:
+        print("Failed to provide address.")
+        return None
+
     cmd = '/opt/riscv/bin/spike -d /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + i_executable_file
     child = pexpect.spawn(cmd)
     child.expect([':', pexpect.EOF])

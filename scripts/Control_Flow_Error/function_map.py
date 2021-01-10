@@ -104,8 +104,13 @@ class FunctionMap:
                 else:
                     # This is the start of a new function
                     self.functions.append(i_func)
-                    i_func = Function(i_line.split(':')[0])
-                    i_found_function = True
+
+                    function = i_line.split(':')[0]
+                    if "." not in function:
+                        i_func = Function(i_line.split(':')[0])
+                        i_found_function = True
+                    else:
+                        i_found_function = False
 
             else:
                 if i_line.startswith('\t') or i_line.startswith('.'):
