@@ -27,12 +27,9 @@ def isInList(i_list, i_num):
     return False
 
 
-def generate_YACCA_file_updated():
-    print("Done")
-
-
 class ECCA:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
 
         # Compile time signature (BID)
@@ -62,7 +59,7 @@ class ECCA:
         # Generate the new assembly file
         self.generate_ECCA_file_updated()
 
-        print("Finished processing ECCA")
+        self.simlog.info("Finished processing ECCA")
 
     ''' Beginning of class function definitions '''
     def generate_ECCA_file_updated(self):
