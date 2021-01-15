@@ -17,6 +17,7 @@ from os import path
 
 class TRIAL1:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
 
         # Compile time signatures are the XOR'ed values of each instruction in the basic block.
@@ -43,7 +44,7 @@ class TRIAL1:
         # Generate the new assembly file
         self.generate_TRIAL1_file_updated()
 
-        print("Finished processing TRIAL1")
+        self.simlog.info("Finished processing TRIAL1")
 
     ''' Beginning of class function definitions '''
     def generate_TRIAL1_file_updated(self):
@@ -145,7 +146,7 @@ class TRIAL1:
                 i_inst_opcode = self.original_map.blocks[i].opcode[j]
                 # Each instruction has to be greater than 4-bytes (16-bits)
                 if(len(i_inst_opcode) < 4):
-                    print("For some reason the instruction is less than 4 bytes")
+                    self.simlog.error("For some reason the instruction is less than 4 bytes")
                     raise Exception
                 # XOR'ed with the existing value.
                 cum_sig ^= int(i_inst_opcode, 16)

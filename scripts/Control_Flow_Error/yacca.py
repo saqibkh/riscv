@@ -13,6 +13,7 @@ from os import path
 
 class YACCA:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
 
         # Compile time signature (B_i)
@@ -57,7 +58,7 @@ class YACCA:
 
         self.generate_YACCA_file_updated()
 
-        print("Finished processing YACCA")
+        self.simlog.info("Finished processing YACCA")
         return
 
     ''' Beginning of class function definitions '''
@@ -167,8 +168,8 @@ class YACCA:
                 self.previous.append(sig)
 
             else:
-                print("Too many incoming blocks to generate the \"Previous\" Value")
-                print("Number of blocks = " + str(len(self.original_map.blocks[i].previous_block_id)))
+                self.simlog.error("Too many incoming blocks to generate the \"Previous\" Value")
+                self.simlog.error("Number of blocks = " + str(len(self.original_map.blocks[i].previous_block_id)))
                 raise Exception
 
 
@@ -196,8 +197,8 @@ class YACCA:
                 self.M1[i] = sig
 
             else:
-                print("Too many incoming blocks to generate the \"M1\" Value.")
-                print("Number of blocks = " + str(len(self.original_map.blocks[i].previous_block_id)))
+                self.simlog.error("Too many incoming blocks to generate the \"M1\" Value.")
+                self.simlog.error("Number of blocks = " + str(len(self.original_map.blocks[i].previous_block_id)))
                 raise Exception
 
     def generate_M2(self):
@@ -226,7 +227,7 @@ class YACCA:
                 self.M2[i] = (B_pred1 & M1_i) ^ B_i
 
             elif len(self.original_map.blocks[i].previous_block_id) > 2:
-                print('We have a problem here as we have more than 2 incoming branches')
+                self.simlog.error('We have a problem here as we have more than 2 incoming branches')
                 raise Exception
 
     ''' End of class definitions '''

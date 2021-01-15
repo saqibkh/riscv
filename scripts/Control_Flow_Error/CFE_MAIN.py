@@ -38,6 +38,7 @@ import trial1
 import trial2
 import trial3
 import instructions
+import sim_logging
 
 
 def usage():
@@ -54,6 +55,7 @@ def checkFileExists(i_filename):
 
 def main(argv):
     l_enable_extras = False
+    simlog = sim_logging.SIMLOG()
 
     if len(sys.argv) == 1:
         usage()
@@ -65,7 +67,8 @@ def main(argv):
             if argv[i + 1] == '--enable-extras':
                 l_enable_extras = True
 
-    print("Processing file: " + argv[0])
+    simlog.info("Processing file: " + argv[0])
+
     file_c = argv[0]
     ''' Create an assembly file and an objdump file from the C program file provided to us '''
     compileUtil.compile_c(file_c)
@@ -88,7 +91,7 @@ def main(argv):
 #####################################################################################################################
     # Generate TRIAL3
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
-                                      enable_functionMap=True, C_File=file_c)
+                                      enable_functionMap=True, C_File=file_c, simlog=simlog)
     i_trial3 = trial3.TRIAL3(map)
     trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
     with open(trial3_file, 'w') as filehandle:
@@ -101,7 +104,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate CFCSS (Control Flow Checking by Software Signature)
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_cfcss = cfcss.CFCSS(map)
     cfcss_file = argv[0].rsplit('.')[0] + '_cfcss.s'
     with open(cfcss_file, 'w') as filehandle:
@@ -113,7 +116,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate YACCA
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_yacca = yacca.YACCA(map)
     yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
     with open(yacca_file, 'w') as filehandle:
@@ -125,7 +128,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate ECCA
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_ecca = ecca.ECCA(map)
     ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
     with open(ecca_file, 'w') as filehandle:
@@ -137,7 +140,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate RSCFC
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_rscfc = rscfc.RSCFC(map)
     rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
     with open(rscfc_file, 'w') as filehandle:
@@ -149,7 +152,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate TRIAL1
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_trial1 = trial1.TRIAL1(map)
     trial1_file = argv[0].rsplit('.')[0] + '_trial1.s'
     with open(trial1_file, 'w') as filehandle:
@@ -161,7 +164,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate TRIAL2
-    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump))
+    map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
     i_trial2 = trial2.TRIAL2(map)
     trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
     with open(trial2_file, 'w') as filehandle:
@@ -187,7 +190,7 @@ def main(argv):
         i_trial2 = i_trial2_new
         map = map_new
 
-    print("Finished processing TRIAL2")
+    simlog.info("Finished processing TRIAL2")
 #####################################################################################################################
 
 #####################################################################################################################

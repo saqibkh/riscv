@@ -19,6 +19,7 @@ from os import path
 
 class TRIAL3:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
 
         # Compile time signature
@@ -37,7 +38,7 @@ class TRIAL3:
 
         # Generate the new assembly file
         #self.generate_TRIAL3_file_updated()
-        print("Finished processing TRIAL3")
+        self.simlog.info("Finished processing TRIAL3")
 
     def process_registers(self):
 
@@ -106,7 +107,7 @@ class TRIAL3:
                         try:
                             i_line_block_obj = self.original_map.blocks[i_block].entries[0]
                         except:
-                            print('done')
+                            self.simlog.debug('done')
                         i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
                         try:
                             i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
@@ -196,7 +197,7 @@ class TRIAL3:
 
 
                     elif l_remaining_opcode_length == 24:
-                        print("Haven't been tested yet")
+                        self.simlog.error("Haven't been tested yet")
                         raise Error
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
                         i_line_num_new_asm_file += 1
@@ -206,7 +207,7 @@ class TRIAL3:
                         i_line_num_new_asm_file += 1
 
                     elif l_remaining_opcode_length == 28:
-                        print("Haven't been tested yet")
+                        self.simlog.error("Haven't been tested yet")
                         raise Error
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
                         i_line_num_new_asm_file += 1
@@ -216,7 +217,7 @@ class TRIAL3:
                         i_line_num_new_asm_file += 1
 
                     elif l_remaining_opcode_length == 32:
-                        print("Haven't been tested yet")
+                        self.simlog.error("Haven't been tested yet")
                         raise Error
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tauipc\ts10,0')
                         i_line_num_new_asm_file += 1
@@ -226,7 +227,7 @@ class TRIAL3:
                         i_line_num_new_asm_file += 1
 
                     else:
-                        print("This case isn't possible or we haven't accounted for it.")
+                        self.simlog.error("This case isn't possible or we haven't accounted for it.")
                         raise Exception
 
                     # Get the number of instructions to jump in the asm file
@@ -255,7 +256,7 @@ class TRIAL3:
             i_line_num_new_asm_file += 1
 
         if i_block != len(self.original_map.blocks):
-            print('Failed to process all blocks. Currently at block id # ' + str(i_block))
+            self.simlog.error('Failed to process all blocks. Currently at block id # ' + str(i_block))
             raise Exception
 
     def get_number_of_instructions_to_jump_asm_signature_length(self, i_inst, i_block, i_sig_length):
@@ -376,13 +377,13 @@ class TRIAL3:
     def update_opcodes(self, i_map, i_new_map):
         # Check the total number of official functions in both new and old maps
         if len(i_map.functions.f_instructions) != len(i_new_map.functions.f_instructions):
-            print("We don't have the same number of functions")
+            self.simlog.error("We don't have the same number of functions")
             raise Exception
 
         # Check the total number of instructions in each function for both new and old maps
         for i in range(len(i_map.functions.f_instructions)):
             if len(i_map.functions.f_instructions[i].opcode) != len(i_new_map.functions.f_instructions[i].opcode):
-                print(
+                self.simlog.error(
                     "We don't have the same number of instructions in both the function:" + i_map.functions.f_names[i])
                 raise Exception
 

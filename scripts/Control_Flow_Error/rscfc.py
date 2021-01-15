@@ -13,6 +13,7 @@ from os import path
 
 class RSCFC:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
 
         # Compile time signature (s_i)
@@ -39,7 +40,7 @@ class RSCFC:
 
         self.generate_RSCFC_file_updated()
 
-        print("Finished processing RSCFC")
+        self.simlog.info("Finished processing RSCFC")
 
     ''' Beginning of class function definitions '''
     def generate_RSCFC_file_updated(self):

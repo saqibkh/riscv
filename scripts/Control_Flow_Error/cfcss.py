@@ -18,6 +18,7 @@ from os import path
 
 class CFCSS:
     def __init__(self, i_map):
+        self.simlog = i_map.simlog
         self.original_map = i_map
         # Compile time signature
         self.compile_time_sig = []
@@ -76,7 +77,7 @@ class CFCSS:
                         try:
                             i_line_block_obj = self.original_map.blocks[i_block].entries[0]
                         except:
-                            print('done')
+                            self.simlog.debug('done')
                         i_line_block_asm = self.get_matching_asm_line_using_objdump_line(i_line_block_obj)
                         try:
                             i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 1].split('\t', 1)[1]
@@ -124,7 +125,7 @@ class CFCSS:
             i_line_num_new_asm_file += 1
 
         if i_block != len(self.original_map.blocks):
-            print('Failed to process all blocks. Currently at block id # ' + str(i_block))
+            self.simlog.error('Failed to process all blocks. Currently at block id # ' + str(i_block))
             raise Exception
 
     def generate_CFCSS_file(self):
@@ -139,7 +140,7 @@ class CFCSS:
             first_inst_in_block = self.original_map.blocks[i].entries[0]
             last_inst_in_block = self.get_matching_asm_line_using_objdump_line(self.original_map.blocks[i].entries[-1])[0]
             if len(i_line_block_asm) != 1:
-                print('We found multiple matches of this particular instruction in the asm/obj mapping file')
+                self.simlog.error('We found multiple matches of this particular instruction in the asm/obj mapping file')
                 raise Exception
 
             # 2. Find the corresponding objdump instruction in the objdump file
@@ -153,7 +154,7 @@ class CFCSS:
                     line_instruction_map += 1
 
             if not i_asm_instruction:
-                print('Failed to find the corresponding asm instruction')
+                self.simlog.error('Failed to find the corresponding asm instruction')
                 raise Exception
             # 4. Find the corresponding instruction in the new_asm_file
             while line_new_asm_file < len(self.new_asm_file):
@@ -238,7 +239,7 @@ class CFCSS:
                     # Get the ID of the incoming blocks
                     incoming_block_id = self.original_map.blocks[i].previous_block_id[j+1]
                     self.D_sig[incoming_block_id] = D_sign ^ self.compile_time_sig[predesessor_block_id_next]
-        print('Finished processing CFCSS.')
+        self.simlog.info('Finished processing CFCSS.')
 
     def get_signature_based_on_id(self, i_id):
         for i in range(len(self.original_map.blocks)):
@@ -314,7 +315,7 @@ class CFCSS:
 
         # Form a 2-dimensional array with instructions from both .s and .obj file
         if(len(instruction_map_asm) != len(instruction_map_obj)):
-            print('Number of instructions is not the same in both .s and .obj file')
+            self.simlog.error('Number of instructions is not the same in both .s and .obj file')
             raise Exception
         self.instruction_map = [instruction_map_asm, instruction_map_obj]
 
