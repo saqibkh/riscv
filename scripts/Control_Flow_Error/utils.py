@@ -456,7 +456,7 @@ class ControlFlowMapRevised:
     #
     # Inputs: f_asm and f_obj objects
     #         enable_functionMap = Creates a map of the functions within this program
-    def __init__(self, i_asm, i_obj, enable_functionMap=False, C_File=None, simlog=None):
+    def __init__(self, i_asm, i_obj, enable_functionMap=False, C_executable_File=None, simlog=None):
         self.file_asm = i_asm
         self.file_obj = i_obj
         self.blocks = []
@@ -507,7 +507,7 @@ class ControlFlowMapRevised:
         ##
         # 7. Get the function map
         if enable_functionMap:
-            self.function_map = function_map.FunctionMap(C_File, i_asm, self.functions)
+            self.function_map = function_map.FunctionMap(C_executable_File, i_asm, self.functions)
 
         # print("Successfully created the Control Flow Graph")
         # '''                                                                     '''

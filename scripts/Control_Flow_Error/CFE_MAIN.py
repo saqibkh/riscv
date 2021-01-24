@@ -72,6 +72,7 @@ def main(argv):
     file_c = argv[0]
     ''' Create an assembly file and an objdump file from the C program file provided to us '''
     compileUtil.compile_c(file_c)
+    file_c_executable = file_c.split(".c")[0]
 
     l_file_dir = file_c.rsplit('/', 1)[0]
     l_test_name = (file_c.rsplit('/', 1)[1]).rsplit('.c')[0]
@@ -91,13 +92,33 @@ def main(argv):
 #####################################################################################################################
     # Generate TRIAL3
     map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
-                                      enable_functionMap=True, C_File=file_c, simlog=simlog)
+                                      enable_functionMap=True, C_executable_File=file_c_executable, simlog=simlog)
     i_trial3 = trial3.TRIAL3(map)
     trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
     with open(trial3_file, 'w') as filehandle:
         for listitem in i_trial3.new_asm_file:
             filehandle.write('%s\n' % listitem)
     compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
+
+    ## Execute the executable binary again and then re-read the register values that needs to be checked
+    #  at the start and at the end of a function.
+    update_file_required = True
+    # loop until we get the same signature values
+    while update_file_required:
+        trial3_s_intermediate_file = utils.readfile(trial3_file)
+        trial3_obj_intermediate_file = utils.readfile(trial3_file.split(".s")[0] + ".objdump")
+        map_new = utils.ControlFlowMapRevised(trial3_s_intermediate_file, trial3_obj_intermediate_file,
+                                              enable_functionMap=True, C_executable_File=(file_c_executable+"_trial3"), simlog=simlog)
+
+        i_trial3_new = trial3.TRIAL3(map_new, i_recalculate_reg_values=True)
+        update_file_required = trial3.update_values(i_trial3, i_trial3_new, trial3_file)
+        compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
+        i_trial3 = i_trial3_new
+        map = map_new
+
+    # Update the asm file after all reg values have been modified
+    trial3.update_registers(trial3_file)
+
     del map, i_trial3, trial3_file
 #####################################################################################################################
 

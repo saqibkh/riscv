@@ -22,8 +22,95 @@ from os import path
 #
 ###################################################################################################################
 
+def update_registers(i_file):
+    i_found = False
+
+    with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
+        for line in file:
+            if line.startswith("\tli\ts11") and not i_found:
+                i_found = True
+                continue
+
+            if i_found:
+                if line.startswith("\tbne\t"):
+                    components = (line.strip()).split('\t')
+                    inst = components[0]
+                    operands = components[1]
+                    operand_to_replace = operands.split(',')[0]
+                    print(line.replace(operand_to_replace, "s11", 1), end='')
+                    i_found = False
+                    continue
+                else:
+                    print("Something unexpected occured")
+                    raise Exception
+
+
+def update_values(i_obj_old, i_obj_new, i_file):
+    is_updated = False
+
+    # First check for discrepancies in the inputs to be checked
+    for i in range(len(i_obj_old.inputs_to_check)):
+        for j in range(len(i_obj_old.inputs_to_check[i][1])):
+            i_old_reg = i_obj_old.inputs_to_check[i][1][j][0]
+            i_old_value = i_obj_old.inputs_to_check[i][1][j][1]
+
+            i_new_reg = i_obj_new.inputs_to_check[i][1][j][0]
+            i_new_value = i_obj_new.inputs_to_check[i][1][j][1]
+
+            if (i_old_value == '') or (i_old_value is None):
+                print("Unexpected Error. The vale is undefined")
+                raise Exception
+
+            if (i_new_value == '') or (i_new_value is None):
+                print("Unexpected Error. The vale is undefined")
+                raise Exception
+
+            # The names of the old and new registers must match
+            if i_old_reg != i_new_reg:
+                print("There is a difference in the registers that are being used: "
+                      + i_old_reg + "!=" + i_new_reg)
+                raise Exception
+
+            if i_old_value != i_new_value:
+                is_updated = True
+                with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
+                    for line in file:
+                        print(line.replace(i_old_value, i_new_value), end='')
+
+    # Next check for discrepancies in the outputs to be checked
+    for i in range(len(i_obj_old.outputs_to_check)):
+        for j in range(len(i_obj_old.outputs_to_check[i][1])):
+            i_old_reg = i_obj_old.outputs_to_check[i][1][j][0]
+            i_old_value = i_obj_old.outputs_to_check[i][1][j][1]
+
+            i_new_reg = i_obj_new.outputs_to_check[i][1][j][0]
+            i_new_value = i_obj_new.outputs_to_check[i][1][j][1]
+
+            if (i_old_value == '') or (i_old_value is None):
+                print("Unexpected Error. The vale is undefined")
+                raise Exception
+
+            if (i_new_value == '') or (i_new_value is None):
+                print("Unexpected Error. The vale is undefined")
+                raise Exception
+
+            # The names of the old and new registers must match
+            if i_old_reg != i_new_reg:
+                print("There is a difference in the registers that are being used: "
+                      + i_old_reg + "!=" + i_new_reg)
+                raise Exception
+
+            if i_old_value != i_new_value:
+                is_updated = True
+                with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
+                    for line in file:
+                        print(line.replace(i_old_value, i_new_value), end='')
+
+    return is_updated
+
+
 class TRIAL3:
-    def __init__(self, i_map):
+    def __init__(self, i_map, i_recalculate_reg_values=False):
         self.simlog = i_map.simlog
         self.original_map = i_map
 
@@ -41,11 +128,14 @@ class TRIAL3:
         self.instruction_map = [[]]
         self.new_asm_file = self.original_map.file_asm
 
+        self.gather_registers_to_be_checked()
+
         # Generate instruction mapping between .s and .objdump file instructions
-        utils.generate_instruction_mapping(self)
+        if i_recalculate_reg_values:
+            return
 
         # Generate the new assembly file
-        self.gather_registers_to_be_checked()
+        utils.generate_instruction_mapping(self)
         self.generate_TRIAL3_file_updated()
         self.simlog.info("Finished processing TRIAL3")
 

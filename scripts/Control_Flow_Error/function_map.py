@@ -62,13 +62,13 @@ class FunctionMap:
     #              processes the CFG blocks
     #
     # Inputs: f_asm and f_obj objects
-    def __init__(self, i_C_File, i_asm, i_util_functions):
+    def __init__(self, i_C_executable_File, i_asm, i_util_functions):
         self.functions = []
 
         self.get_functions(i_asm)
         self.get_parent_function()
         self.get_instructions(i_util_functions)
-        self.process_registers(i_C_File)
+        self.process_registers(i_C_executable_File)
 
     # Returns the ID of the function whose name matches with "i_func_name". Otherwise return None.
     def get_function_id_matching_name(self, i_func_name):
@@ -91,13 +91,13 @@ class FunctionMap:
     # 3. Get a list of registers that are modified
     # 4. Fill the list of registers that weren't modified in the function
     # 5. Get a list of registers that are different from start and end along with their different values
-    def process_registers(self, i_C_File):
+    def process_registers(self, i_C_executable_File):
         # Get a value of all registers at the start and end of each function
         for i in range(len(self.functions)):
             self.functions[i].initial_register_values = execute_spike.get_registers_values_at_address(
-                i_C_File.rsplit('.c')[0], self.functions[i].starting_address)
+                i_C_executable_File.rsplit('.c')[0], self.functions[i].starting_address)
             self.functions[i].final_register_values = execute_spike.get_registers_values_at_address(
-                i_C_File.rsplit('.c')[0], self.functions[i].ending_address)
+                i_C_executable_File.rsplit('.c')[0], self.functions[i].ending_address)
 
         # Get a list of registers that are used
         for i in range(len(self.functions)):
