@@ -77,8 +77,8 @@ class TRIAL3:
                     l_value = self.inputs_to_check[i_function][1][i][1]
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
                     i_line_num_new_asm_file += 1
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,' + l_register + "," +
-                                             utils.exception_handler_address)
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
+                                             + l_register + "," + utils.exception_handler_address)
                     i_line_num_new_asm_file += 1
 
                 # Find the instruction within the function that calls the return address ("jr ra")
@@ -92,8 +92,8 @@ class TRIAL3:
                             l_value = self.outputs_to_check[i_function][1][i][1]
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
                             i_line_num_new_asm_file += 1
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\ts11,' + l_register + "," +
-                                                     utils.exception_handler_address)
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
+                                                     + l_register + "," + utils.exception_handler_address)
                             i_line_num_new_asm_file += 1
 
                         # Now finish processing this function
