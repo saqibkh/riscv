@@ -35,6 +35,11 @@ def get_registers_values_at_address(i_executable_file, i_address):
         child.sendline(cmd)
         child.expect([cmd + '\r\n', pexpect.EOF])
         i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
+
+        # It is possible that we never call this function, which is why we can't get the registers for it.
+        # In this case the reg_vale is '', so change it to None
+        if i_reg_value == '':
+            i_reg_value = None
         i_reg_list.append([registers.regular_registers[i], i_reg_value])
 
     for i in range(len(registers.fp_registers)):

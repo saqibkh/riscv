@@ -86,11 +86,11 @@ def update_values(i_obj_old, i_obj_new, i_file):
             i_new_reg = i_obj_new.outputs_to_check[i][1][j][0]
             i_new_value = i_obj_new.outputs_to_check[i][1][j][1]
 
-            if (i_old_value == '') or (i_old_value is None):
+            if i_old_value == '':
                 print("Unexpected Error. The vale is undefined")
                 raise Exception
 
-            if (i_new_value == '') or (i_new_value is None):
+            if i_new_value == '':
                 print("Unexpected Error. The vale is undefined")
                 raise Exception
 
@@ -165,6 +165,19 @@ class TRIAL3:
                 for i in range(len(self.inputs_to_check[i_function][1])):
                     l_register = self.inputs_to_check[i_function][1][i][0]
                     l_value = self.inputs_to_check[i_function][1][i][1]
+
+                    # Make sure the register value exist
+                    if l_value == '':
+                        self.simlog.error("Register value is empty:" + l_register)
+                        raise Exception
+
+                    # If a None exists in the register value then skip this register as
+                    # we will never go to this function
+                    if not l_value:
+                        self.simlog.debug('Not adding a check for register:' + l_register
+                                          + 'because it is None')
+                        continue
+
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
                     i_line_num_new_asm_file += 1
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
@@ -180,6 +193,19 @@ class TRIAL3:
                         for i in range(len(self.outputs_to_check[i_function][1])):
                             l_register = self.outputs_to_check[i_function][1][i][0]
                             l_value = self.outputs_to_check[i_function][1][i][1]
+
+                            # Make sure the register value exist
+                            if l_value == '':
+                                self.simlog.error("Register value is empty:" + l_register)
+                                raise Exception
+
+                            # If a None exists in the register value then skip this register as
+                            # we will never go to this function
+                            if not l_value:
+                                self.simlog.debug('Not adding a check for register:' + l_register
+                                                  + 'because it is None')
+                                continue
+
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
