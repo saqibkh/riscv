@@ -54,7 +54,7 @@ def checkFileExists(i_filename):
 
 
 def main(argv):
-    l_enable_extras = False
+    l_enable_extras = True
     simlog = sim_logging.SIMLOG()
 
     if len(sys.argv) == 1:
@@ -118,6 +118,7 @@ def main(argv):
 
     # Update the asm file after all reg values have been modified
     trial3.update_registers(trial3_file)
+    simlog.info("Finished processing TRIAL3")
 
     del map, i_trial3, trial3_file
 #####################################################################################################################

@@ -137,7 +137,6 @@ class TRIAL3:
         # Generate the new assembly file
         utils.generate_instruction_mapping(self)
         self.generate_TRIAL3_file_updated()
-        self.simlog.info("Finished processing TRIAL3")
 
     def generate_TRIAL3_file_updated(self):
         i_function = 0
