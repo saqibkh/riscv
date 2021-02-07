@@ -29,6 +29,7 @@ def update_registers(i_file):
         for line in file:
             if line.startswith("\tli\ts11") and not i_found:
                 i_found = True
+                print(line, end='')
                 continue
 
             if i_found:
@@ -43,6 +44,8 @@ def update_registers(i_file):
                 else:
                     print("Something unexpected occured")
                     raise Exception
+            else:
+                print(line, end='')
 
 
 def update_values(i_obj_old, i_obj_new, i_file):

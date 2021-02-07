@@ -24,6 +24,52 @@ exception_handler_address = '100'
 ''' Commonly used functions will be defined here'''
 
 
+def get_memory_size_info(i_object_old, i_object_new, simlog):
+    i_start_mem_address = None
+    i_final_mem_address = None
+
+    # Process the old object
+    for i in range(len(i_object_old.functions.f_instructions)):
+        if i_start_mem_address is None:
+            i_start_mem_address = i_object_old.functions.f_instructions[i].address[0]
+            i_final_mem_address = i_object_old.functions.f_instructions[i].address[-1]
+        else:
+            if i_object_old.functions.f_instructions[i].address[0] < i_start_mem_address:
+                i_start_mem_address = i_object_old.functions.f_instructions[i].address[0]
+            if i_object_old.functions.f_instructions[i].address[-1] > i_final_mem_address:
+                i_final_mem_address = i_object_old.functions.f_instructions[i].address[-1]
+
+    # Total memory size of the original file
+    i_old_mem_size = int(i_final_mem_address,16) - int(i_start_mem_address,16)
+    simlog.debug("Original file starting address=" + i_start_mem_address)
+    simlog.debug("Original file final address=" + i_final_mem_address)
+    simlog.info("Original file size = " + str(i_old_mem_size) + "bits")
+
+    # Process the new object
+    i_start_mem_address = None
+    i_final_mem_address = None
+    for i in range(len(i_object_new.functions.f_instructions)):
+        if i_start_mem_address is None:
+            i_start_mem_address = i_object_new.functions.f_instructions[i].address[0]
+            i_final_mem_address = i_object_new.functions.f_instructions[i].address[-1]
+        else:
+            if i_object_new.functions.f_instructions[i].address[0] < i_start_mem_address:
+                i_start_mem_address = i_object_new.functions.f_instructions[i].address[0]
+            if i_object_new.functions.f_instructions[i].address[-1] > i_final_mem_address:
+                i_final_mem_address = i_object_new.functions.f_instructions[i].address[-1]
+
+    # Total memory size of the original file
+    i_new_mem_size = int(i_final_mem_address, 16) - int(i_start_mem_address, 16)
+    simlog.debug("Modified file starting address=" + i_start_mem_address)
+    simlog.debug("Modified file final address=" + i_final_mem_address)
+    simlog.info("Modified file size = " + str(i_new_mem_size) + "bits")
+
+    # Calculate change in file size and percentage increase
+    increase_file_size_percentage = ((i_new_mem_size - i_old_mem_size) / i_old_mem_size) * 100
+    simlog.info("Change in file size = " + str(i_new_mem_size - i_old_mem_size) + "bits")
+    simlog.info("Increase in file size = " + str(increase_file_size_percentage) + "%")
+
+
 def registers_modified_FunctionMap(i_inst_list):
     i_registers_modified = []
     for i in range(len(i_inst_list)):
