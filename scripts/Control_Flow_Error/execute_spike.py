@@ -12,6 +12,17 @@ import registers
 ''' Start of class definitions'''
 
 
+# Get the execution time between the starting and the ending address
+def get_execute_time(i_executable_file, i_start_address, i_end_address):
+    child = execute_spike_address(i_executable_file, i_start_address)
+    time_0 = time.time()
+    cmd = "until pc 0 " + i_end_address
+    child.sendline(cmd)
+    child.expect([cmd + '\r\n', pexpect.EOF])
+    time_1 = time.time()
+    return time_1 - time_0
+
+
 # This function will create start the RISCV simulator and then step to the desired address,
 # where it will get all the register values and store it in a list. The list will be returned
 # to the calling function.
