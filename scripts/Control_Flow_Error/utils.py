@@ -28,6 +28,8 @@ exception_handler_address = '100'
 def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_start_mem_address = None
     i_final_mem_address = None
+    i_execution_time_original_file = None
+    i_execution_time_modified_file = None
 
     # Process the old object
     for i in range(len(i_object_old.functions.f_instructions)):
@@ -44,8 +46,24 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_old_mem_size = int(i_final_mem_address,16) - int(i_start_mem_address,16)
     simlog.debug("Original file starting address=" + i_start_mem_address)
     simlog.debug("Original file final address=" + i_final_mem_address)
-    simlog.info("Original file size = " + str(i_old_mem_size) + "bits")
+    simlog.debug("Original file size = " + str(i_old_mem_size) + "bits")
 
+    # Get execution time
+    i_execution_time_original_file = execute_spike.execute_spike_get_execution_time(
+        i_object_old.file_obj[1].split(":")[0])
+    if i_execution_time_original_file:
+        for i in range(10):
+            i_execution_time_original_file = float(i_execution_time_original_file) + \
+                                             float(execute_spike.execute_spike_get_execution_time(
+                                                 i_object_old.file_obj[1].split(":")[0]))
+        # Get the average execution time
+        i_execution_time_original_file = i_execution_time_original_file / 10
+        simlog.debug("Original file took " + str(i_execution_time_original_file) + " seconds")
+    else:
+        simlog.debug('Unable to get execution time from the original file')
+
+##################################################################################################################
+##################################################################################################################
     # Process the new object
     i_start_mem_address = None
     i_final_mem_address = None
@@ -63,18 +81,36 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_new_mem_size = int(i_final_mem_address, 16) - int(i_start_mem_address, 16)
     simlog.debug("Modified file starting address=" + i_start_mem_address)
     simlog.debug("Modified file final address=" + i_final_mem_address)
-    simlog.info("Modified file size = " + str(i_new_mem_size) + "bits")
+    simlog.debug("Modified file size = " + str(i_new_mem_size) + "bits")
+
+    # Get execution time
+    i_execution_time_modified_file = execute_spike.execute_spike_get_execution_time(
+        i_object_new.file_obj[1].split(":")[0])
+    if i_execution_time_modified_file:
+        for i in range(10):
+            i_execution_time_modified_file = float(i_execution_time_modified_file) + \
+                                             float(execute_spike.execute_spike_get_execution_time(
+                                                 i_object_new.file_obj[1].split(":")[0]))
+        # Get the average execution time
+        i_execution_time_modified_file = i_execution_time_modified_file / 10
+        simlog.debug("Modified file took " + str(i_execution_time_modified_file) + " seconds")
+    else:
+        simlog.debug('Unable to get execution time from the modified executable file')
+
+##################################################################################################################
+##################################################################################################################
 
     # Calculate change in file size and percentage increase
     increase_file_size_percentage = ((i_new_mem_size - i_old_mem_size) / i_old_mem_size) * 100
-    simlog.info("Change in file size = " + str(i_new_mem_size - i_old_mem_size) + "bits")
+    simlog.debug("Change in file size = " + str(i_new_mem_size - i_old_mem_size) + "bits")
     simlog.info("Increase in file size = " + str(increase_file_size_percentage) + "%")
 
     # Calculate change in execution time and percentage increase
-    # increase_execution_time_percentage = (i_execution_time_modified_file -
-    #                                       i_execution_time_original_file)/i_execution_time_original_file * 100
-    # simlog.info("Change in execution time = " + str(i_execution_time_modified_file - i_execution_time_original_file) + "sec")
-    # simlog.info("Change in execution time percentage = " + str(increase_execution_time_percentage) + "%")
+    if i_execution_time_original_file and i_execution_time_modified_file:
+        increase_execution_time_percentage = (i_execution_time_modified_file -
+                                              i_execution_time_original_file)/i_execution_time_original_file * 100
+        simlog.debug("Change in execution time = " + str(i_execution_time_modified_file - i_execution_time_original_file) + "sec")
+        simlog.info("Change in execution time percentage = " + str(increase_execution_time_percentage) + "%")
 
 
 def registers_modified_FunctionMap(i_inst_list):

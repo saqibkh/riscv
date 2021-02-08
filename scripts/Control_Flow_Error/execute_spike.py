@@ -9,18 +9,8 @@ import unittest
 import sys
 import time
 import registers
+
 ''' Start of class definitions'''
-
-
-# Get the execution time between the starting and the ending address
-def get_execute_time(i_executable_file, i_start_address, i_end_address):
-    child = execute_spike_address(i_executable_file, i_start_address)
-    time_0 = time.time()
-    cmd = "until pc 0 " + i_end_address
-    child.sendline(cmd)
-    child.expect([cmd + '\r\n', pexpect.EOF])
-    time_1 = time.time()
-    return time_1 - time_0
 
 
 # This function will create start the RISCV simulator and then step to the desired address,
@@ -66,7 +56,6 @@ def get_registers_values_at_address(i_executable_file, i_address):
 
 
 def get_register_at_address(i_executable_file, i_address, i_register):
-
     if i_address is None:
         print("Failed to provide address.")
         return None
@@ -81,7 +70,6 @@ def get_register_at_address(i_executable_file, i_address, i_register):
 
 
 def get_floating_point_register_at_address(i_executable_file, i_address, i_floating_register):
-
     if i_address is None:
         print("Failed to provide address.")
         return None
@@ -96,7 +84,6 @@ def get_floating_point_register_at_address(i_executable_file, i_address, i_float
 
 # Get the memory data after reaching the specified address
 def get_memory_data_at_address(i_executable_file, i_address, i_mem_location):
-
     if i_address is None:
         print("Failed to provide address.")
         return None
@@ -115,7 +102,6 @@ def get_memory_data_at_address(i_executable_file, i_address, i_mem_location):
 
 # Returns the data stored in the memory location
 def get_memory_data(i_executable_file, i_mem_location):
-
     if i_mem_location is None:
         print("Failed to provide memory address.")
         return None
@@ -129,7 +115,6 @@ def get_memory_data(i_executable_file, i_mem_location):
 
 
 def execute_spike_address(i_executable_file, i_address):
-
     if i_address is None:
         print("Failed to provide address.")
         return None
@@ -149,3 +134,19 @@ def execute_spike(i_executable_file):
     child = pexpect.spawn(cmd)
     child.expect([':', pexpect.EOF])
     return child
+
+
+# Gets the execution time from the executable by read keyword
+# "Total Execution time:". Returns None if the keyword is not present
+def execute_spike_get_execution_time(i_executable_file):
+    l_return = None
+    cmd = '/opt/riscv/bin/spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + i_executable_file
+    child = pexpect.spawn(cmd)
+
+    while l_return is not '':
+        child.expect(['\r\n', pexpect.EOF])
+        l_return = (child.readline()).decode("utf-8")
+
+        if "Total Execution time:" in l_return:
+            return l_return.split("Total Execution time:")[-1].split(" ")[1]
+    return None
