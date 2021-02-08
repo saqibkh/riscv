@@ -22,6 +22,10 @@ exception_handler_address = '100'  # --> 0x64
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'
 
+# This the the number of times the executable file will be run to get the execution time.
+# The higher the number, the higher the accuracy.
+i_execution_time_loop = 10
+
 ''' Commonly used functions will be defined here'''
 
 
@@ -52,7 +56,7 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_execution_time_original_file = execute_spike.execute_spike_get_execution_time(
         i_object_old.file_obj[1].split(":")[0])
     if i_execution_time_original_file:
-        for i in range(10):
+        for i in range(i_execution_time_loop):
             i_execution_time_original_file = float(i_execution_time_original_file) + \
                                              float(execute_spike.execute_spike_get_execution_time(
                                                  i_object_old.file_obj[1].split(":")[0]))
@@ -87,7 +91,7 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_execution_time_modified_file = execute_spike.execute_spike_get_execution_time(
         i_object_new.file_obj[1].split(":")[0])
     if i_execution_time_modified_file:
-        for i in range(10):
+        for i in range(i_execution_time_loop):
             i_execution_time_modified_file = float(i_execution_time_modified_file) + \
                                              float(execute_spike.execute_spike_get_execution_time(
                                                  i_object_new.file_obj[1].split(":")[0]))
