@@ -1,5 +1,6 @@
 /* C implementation QuickSort */
 #include<stdio.h> 
+#include <time.h>
 
 // A utility function to swap two elements 
 void swap(int* a, int* b) 
@@ -63,10 +64,17 @@ void printArray(int arr[], int size)
 // Driver program to test above functions 
 int main() 
 { 
+	clock_t t;
+        t = clock();
+
 	int arr[] = {10, 7, 8, 9, 1, 5}; 
 	int n = sizeof(arr)/sizeof(arr[0]); 
 	quickSort(arr, 0, n-1); 
 	printf("Sorted array: \n"); 
 	printArray(arr, n); 
+
+	t = clock() - t;
+        double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+        printf("Total Execution time: %f seconds\n", time_taken);
 	return 0; 
 }
