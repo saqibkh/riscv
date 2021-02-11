@@ -185,7 +185,7 @@ class RSCFC:
 
     def generate_cumulative_sig(self):
         for i in range(len(self.original_map.blocks)):
-            cum_sig = '0b'
+            cum_sig = '0b0'
 
             # We are not going to count the final branch instruction within the basic block
             for j in range(len(self.original_map.blocks[i].entries)):
