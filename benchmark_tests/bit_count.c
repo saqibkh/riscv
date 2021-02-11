@@ -21,7 +21,7 @@ int main()
 	clock_t t;
         t = clock();
 
-	int i = 9;
+	int i = 923472389;
 	printf("Number of bits = %d\n", countSetBits(i)); 
 
 	t = clock() - t;
