@@ -1,6 +1,7 @@
 // C program for insertion sort 
 #include <math.h> 
 #include <stdio.h> 
+#include <time.h>
 
 /* Function to sort an array using insertion sort*/
 void insertionSort(int arr[], int n) 
@@ -33,12 +34,17 @@ void printArray(int arr[], int n)
 /* Driver program to test insertion sort */
 int main() 
 { 
-	int arr[] = { 12, 11, 13, 5, 6 }; 
-	int n = sizeof(arr) / sizeof(arr[0]); 
+	clock_t t;
+        t = clock();
 
-	insertionSort(arr, n); 
-	printArray(arr, n); 
+	int arr[] = {12, 11, 13, 5, 6, 21, 23, 76, 2, 95, 94, 87, 19};
+	int n = sizeof(arr) / sizeof(arr[0]);
+	insertionSort(arr, n);
+	printArray(arr, n);
 
+	t = clock() - t;
+        double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+        printf("Total Execution time: %f seconds\n", time_taken);
 	return 0; 
 } 
 
