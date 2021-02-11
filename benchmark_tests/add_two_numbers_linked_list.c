@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
- 
+#include <time.h>
+
 /* Linked list node */
 struct Node {
     int data;
@@ -106,6 +107,9 @@ void printList(struct Node* node)
 /* Driver code */
 int main(void)
 {
+    clock_t t;
+    t = clock();
+
     struct Node* res = NULL;
     struct Node* first = NULL;
     struct Node* second = NULL;
@@ -129,6 +133,9 @@ int main(void)
     res = addTwoLists(first, second);
     printf("Resultant list is ");
     printList(res);
- 
+
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+    printf("Total Execution time: %f seconds\n", time_taken); 
     return 0;
 }
