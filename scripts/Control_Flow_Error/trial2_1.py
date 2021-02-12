@@ -79,7 +79,7 @@ def store_signature_in_memory(i_file):
         if 'User fetch segfault @ 0x' in l_output:
             l_file = utils.readfile(i_file)
             t6 = (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
-            while t6.startswith('0'):
+            while t6.startswith('0') and (t6 != '0'):
                 t6 = t6.split('0', 1)[-1]
             s11 = (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
             new_signature_int = int(t6, 16) ^ int(s11, 16)
@@ -88,10 +88,13 @@ def store_signature_in_memory(i_file):
             # Update the signatures in the assembly file
             for i in range(len(l_file)):
                 line = l_file[i]
-                if t6 in line:
-                    line = line.replace(t6, str(new_signature_hex))
-                    line = line.replace(str(int(t6, 16)), str(new_signature_int))
-                    l_file[i] = line
+                if line.startswith('\t.dword\t' + str(int(t6, 16))):
+
+                    # It is possible that there are two same signatures.
+                    # Take a guess as to which one to update
+                    if random.random() < 0.5:
+                        line = '\t.dword\t' + str(new_signature_int) + "\t#0x" + str(new_signature_hex)
+                        l_file[i] = line
             # Rewrite the file
             with open(i_file, 'w') as filehandle:
                 for listitem in l_file:
