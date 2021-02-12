@@ -136,6 +136,20 @@ def execute_spike(i_executable_file):
     return child
 
 
+def execute_spike_without_debug(i_executable_file):
+    l_output = ''
+    cmd = '/opt/riscv/bin/spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + i_executable_file
+    child = pexpect.spawn(cmd)
+    child.expect(['\r\n', pexpect.EOF])
+
+    l_return = (child.readline()).decode("utf-8")
+    while l_return != '':
+        l_output += l_return
+        l_return = (child.readline()).decode("utf-8")
+
+    return l_output
+
+
 # Gets the execution time from the executable by read keyword
 # "Total Execution time:". Returns None if the keyword is not present
 def execute_spike_get_execution_time(i_executable_file):
@@ -146,7 +160,6 @@ def execute_spike_get_execution_time(i_executable_file):
     while l_return is not '':
         child.expect(['\r\n', pexpect.EOF])
         l_return = (child.readline()).decode("utf-8")
-
         if "Total Execution time:" in l_return:
             return l_return.split("Total Execution time:")[-1].split(" ")[1]
     return None

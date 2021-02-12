@@ -4,6 +4,7 @@ import subprocess
 import utils
 import compileUtil
 import fileinput
+import execute_spike
 from os import path
 
 ###################################################################################################################
@@ -61,6 +62,37 @@ def store_signature_in_memory(i_file):
 
     # Now compile the new file
     compileUtil.compile_s(i_file)
+    del filehandle, i, i_line, l_file, l_signature_name, l_signature_value, listitem, signature_list, signature_number
+
+    # Now this is a bit of a hack
+    # The signature has changed because we add/changed a few instructions.
+    # Therefore run the simulator and modify signatures as needed
+    update_needed = True
+    while update_needed:
+        l_output = execute_spike.execute_spike_without_debug(i_file.rsplit(".s", 1)[0])
+
+        if 'User fetch segfault @ 0x' in l_output:
+            l_file = utils.readfile(i_file)
+            t6 = '0x' + (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
+            s11 = '0x' + (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
+            new_signature_int = int(t6, 16) ^ int(s11, 16)
+            new_signature_hex = hex(new_signature_int)
+
+            # Update the signatures in the assembly file
+            for i in range(len(l_file)):
+                line = l_file[i]
+                if t6 in line:
+                    line = line.replace(t6, str(new_signature_hex))
+                    line = line.replace(str(int(t6, 16)), str(new_signature_int))
+                    l_file[i] = line
+            # Rewrite the file
+            with open(i_file, 'w') as filehandle:
+                for listitem in l_file:
+                    filehandle.write('%s\n' % listitem)
+            # Compile the file again
+            compileUtil.compile_s(i_file)
+        else:
+            update_needed = False
 
 
 def update_signature(i_obj_old, i_obj_new, i_file):
