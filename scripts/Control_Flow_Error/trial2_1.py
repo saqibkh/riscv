@@ -5,6 +5,7 @@ import utils
 import compileUtil
 import fileinput
 import execute_spike
+import os
 from os import path
 
 ###################################################################################################################
@@ -76,7 +77,7 @@ def store_signature_in_memory(i_file):
             # Update the signatures in the assembly file
             for i in range(len(l_file)):
                 line = l_file[i]
-                if line == ('.VR' + str(t6) + ":"):
+                if line == ('.VR' + str(int(t6, 16)) + ":"):
                     line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
                     l_file[i+1] = line
                     break
@@ -302,6 +303,10 @@ class TRIAL2_1:
                     i_line_num_new_asm_file += 1
                     self.new_asm_file.append('\n.VR' + str(i_block) + ":")
                     self.new_asm_file.append('\t.dword\t' + str(i_block))
+                    self.new_asm_file.append('\t.text')
+                    self.new_asm_file.append('\t.align 1')
+                    self.new_asm_file.append('\t.global main')
+                    self.new_asm_file.append('\t.type main, @function')
 
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + i_compile_time_sig_incoming_block)
                     i_line_num_new_asm_file += 1
