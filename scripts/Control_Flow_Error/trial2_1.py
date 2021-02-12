@@ -22,6 +22,11 @@ from os import path
 # the signatures and then match it with the existing signatures. This is a new feature that is essential
 # for DFE detection techniques.
 #
+# This is an upgraded implementation which was done in TRIAL2. The only difference is that the expected signatures
+# are loaded from memory instruction of being loaded via multiple instructions. This helps in reducing the overall
+# memory requirements for the implementation
+#
+#
 ###################################################################################################################
 
 
@@ -73,10 +78,12 @@ def store_signature_in_memory(i_file):
 
         if 'User fetch segfault @ 0x' in l_output:
             l_file = utils.readfile(i_file)
-            t6 = '0x' + (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
-            s11 = '0x' + (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
+            t6 = (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
+            while t6.startswith('0'):
+                t6 = t6.split('0', 1)[-1]
+            s11 = (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
             new_signature_int = int(t6, 16) ^ int(s11, 16)
-            new_signature_hex = hex(new_signature_int)
+            new_signature_hex = (hex(new_signature_int)).split('0x')[-1]
 
             # Update the signatures in the assembly file
             for i in range(len(l_file)):
