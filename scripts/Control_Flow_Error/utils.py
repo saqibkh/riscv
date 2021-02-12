@@ -840,7 +840,9 @@ class ControlFlowMapRevised:
             elif (i_asm[i].startswith('.')):
                 continue
             else:
-                self.functions.f_names.append(i_asm[i].strip()[:-1])
+                line = i_asm[i]
+                if line is not '':
+                    self.functions.f_names.append(i_asm[i].strip()[:-1])
         del i_asm
 
 

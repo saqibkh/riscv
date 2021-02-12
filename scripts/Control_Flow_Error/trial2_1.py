@@ -45,20 +45,9 @@ def store_signature_in_memory(i_file):
             signature_number += 1
 
             # Load signature from a variable stored in memory
-            l_file.insert(i + 0, '\tlui\ts9,%hi(' + l_signature_name + ')')
-            l_file.insert(i + 1, '\taddi\ts9,s9,%lo(' + l_signature_name + ')')
-            l_file.insert(i + 2, '\tld\tt6,0(s9)')
-            i += 3
+            l_file.insert(i + 0, '\tld\tt6,0(s9)')
+            i += 1
             del l_file[i]
-
-    # We have now reached the end of file. This is a safe place to store the signature variables
-    for i in range(len(signature_list)):
-        l_signature_name = signature_list[i][0]
-        l_signature_value = int(signature_list[i][1], 16)
-        l_file.append(l_signature_name + ":")
-        l_file.append('\t.dword\t' + str(l_signature_value) + "\t#" + str(hex(l_signature_value)))
-        l_file.append('\t.text')
-        l_file.append('\t.align 1')
 
     # Rewrite the file
     with open(i_file, 'w') as filehandle:
@@ -82,19 +71,15 @@ def store_signature_in_memory(i_file):
             while t6.startswith('0') and (t6 != '0'):
                 t6 = t6.split('0', 1)[-1]
             s11 = (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
-            new_signature_int = int(t6, 16) ^ int(s11, 16)
-            new_signature_hex = (hex(new_signature_int)).split('0x')[-1]
+            new_signature = int(t6, 16) ^ int(s11, 16) # In Decimal
 
             # Update the signatures in the assembly file
             for i in range(len(l_file)):
                 line = l_file[i]
-                if line.startswith('\t.dword\t' + str(int(t6, 16))):
-
-                    # It is possible that there are two same signatures.
-                    # Take a guess as to which one to update
-                    if random.random() < 0.5:
-                        line = '\t.dword\t' + str(new_signature_int) + "\t#0x" + str(new_signature_hex)
-                        l_file[i] = line
+                if line == ('.VR' + str(t6) + ":"):
+                    line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
+                    l_file[i+1] = line
+                    break
             # Rewrite the file
             with open(i_file, 'w') as filehandle:
                 for listitem in l_file:
@@ -310,6 +295,14 @@ class TRIAL2_1:
                     # Load expected signature value into register t6
                     i_compile_time_sig_incoming_block = self.compile_time_sig[
                         self.original_map.blocks[i_block].previous_block_id[0]]
+
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tlui\ts9,%hi(.VR' + str(i_block) + ")")
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts9,s9,%lo(.VR' + str(i_block) + ")")
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.append('\n.VR' + str(i_block) + ":")
+                    self.new_asm_file.append('\t.dword\t' + str(i_block))
+
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\tt6,' + i_compile_time_sig_incoming_block)
                     i_line_num_new_asm_file += 1
                     # Check the expected value

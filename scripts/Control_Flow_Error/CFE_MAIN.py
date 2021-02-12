@@ -104,21 +104,21 @@ def main(argv):
     compileUtil.compile_s(trial2_1_file)  # Compile the newly created assembly file to generate a static binary
 
     ## Re-read the <test>_intermediate_trial2_1 objdump and .s file and form the Control Flow Graph again
-    update_file_required = True
-    # loop until we get the same signature values
-    while update_file_required:
-        trial2_1_s_intermediate_file = utils.readfile(trial2_1_file)
-        trial2_1_obj_intermediate_file = utils.readfile(trial2_1_file.split(".s")[0] + ".objdump")
-        trial2__1s_intermediate_file, trial2_obj_intermediate_file = i_trial2_1.remove_signature_checking(
-            trial2_1_s_intermediate_file, trial2_1_obj_intermediate_file)
-        map_new = utils.ControlFlowMapRevised(trial2_1_s_intermediate_file, trial2_1_obj_intermediate_file)
-        map_new = i_trial2_1.update_opcodes(map, map_new)
-        i_trial2_1_new = trial2_1.TRIAL2_1(map_new, i_generate_signature_only=True)
-        # We have old and new signatures in i_trial2_1 and i_trial2_1_new respectively.
-        update_file_required = trial2_1.update_signature(i_trial2_1, i_trial2_1_new, trial2_1_file)
-        compileUtil.compile_s(trial2_1_file)  # Compile the newly created assembly file to generate a static binary
-        i_trial2_1 = i_trial2_1_new
-        map = map_new
+    # update_file_required = True
+    # # loop until we get the same signature values
+    # while update_file_required:
+    #     trial2_1_s_intermediate_file = utils.readfile(trial2_1_file)
+    #     trial2_1_obj_intermediate_file = utils.readfile(trial2_1_file.split(".s")[0] + ".objdump")
+    #     trial2__1s_intermediate_file, trial2_obj_intermediate_file = i_trial2_1.remove_signature_checking(
+    #         trial2_1_s_intermediate_file, trial2_1_obj_intermediate_file)
+    #     map_new = utils.ControlFlowMapRevised(trial2_1_s_intermediate_file, trial2_1_obj_intermediate_file)
+    #     map_new = i_trial2_1.update_opcodes(map, map_new)
+    #     i_trial2_1_new = trial2_1.TRIAL2_1(map_new, i_generate_signature_only=True)
+    #     # We have old and new signatures in i_trial2_1 and i_trial2_1_new respectively.
+    #     update_file_required = trial2_1.update_signature(i_trial2_1, i_trial2_1_new, trial2_1_file)
+    #     compileUtil.compile_s(trial2_1_file)  # Compile the newly created assembly file to generate a static binary
+    #     i_trial2_1 = i_trial2_1_new
+    #     map = map_new
 
     # My storing signature in memory (compared to loading via instructions) is we save a lot of instructions
     trial2_1.store_signature_in_memory(trial2_1_file)
@@ -128,8 +128,8 @@ def main(argv):
                                           simlog=simlog)
     utils.get_memory_size_info(map, new_map, simlog=simlog)
 
-    del i_trial2_1, i_trial2_1_new, new_map, map, map_new, trial2_1_s_intermediate_file, trial2_1_obj_intermediate_file
-    del trial2_1_file, trial2_1_file_objdump, update_file_required
+    del i_trial2_1, new_map, map
+    del trial2_1_file, trial2_1_file_objdump
     simlog.info("Finished processing TRIAL2_1")
     simlog.info("------------------------------------------------------------------------------------------------\n\n")
 #####################################################################################################################
