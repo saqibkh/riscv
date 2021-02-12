@@ -50,7 +50,9 @@ def store_signature_in_memory(i_file):
         l_signature_name = signature_list[i][0]
         l_signature_value = int(signature_list[i][1], 16)
         l_file.append(l_signature_name + ":")
-        l_file.append('\t.dword\t' + str(l_signature_value))
+        l_file.append('\t.dword\t' + str(l_signature_value) + "\t#" + str(hex(l_signature_value)))
+        l_file.append('\t.text')
+        l_file.append('\t.align 1')
 
     # Rewrite the file
     with open(i_file, 'w') as filehandle:
@@ -59,7 +61,7 @@ def store_signature_in_memory(i_file):
 
     # Now compile the new file
     compileUtil.compile_s(i_file)
-    print("Here")
+
 
 def update_signature(i_obj_old, i_obj_new, i_file):
     is_updated = False
