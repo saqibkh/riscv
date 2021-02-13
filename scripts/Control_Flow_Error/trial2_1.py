@@ -31,7 +31,7 @@ from os import path
 ###################################################################################################################
 
 
-def store_signature_in_memory(i_file):
+def store_signature_in_memory(i_file, simlog):
     signature_number = 0
     signature_list = []
     l_file = utils.readfile(i_file)
@@ -71,6 +71,7 @@ def store_signature_in_memory(i_file):
             l_file = utils.readfile(i_file)
             t6 = (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
             s11 = (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
+            s10 = (l_output.split('sA ', 1)[-1]).split(' ')[0]
             new_signature = int(t6, 16) ^ int(s11, 16) # In Decimal
 
             # Update the signatures in the assembly file
@@ -82,17 +83,33 @@ def store_signature_in_memory(i_file):
                     update_complete = True
                     break
 
+            # It is possible that we have updated the .VR variable, but the signatures changed due to all
+            # other changed that we were making. Therefore we might have to again change the VR variable or
+            # change the extended signature
             if not update_complete:
-                for i in range(len(l_file)):
-                    if l_file[i].startswith('\t.dword\t' + str(int(t6, 16))):
-                        line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
-                        l_file[i] = line
-                        update_complete = True
-                        break
+                # Change extended signature
+                if int(s10, 16) != 0:
+                    s10_old_value = "0x" + s10
+                    s10_new_value = hex(int(s10_old_value, 16) ^ int(s11, 16))
+                    for i in range(len(l_file)):
+                        line = l_file[i]
+                        if l_file[i].startswith('\tli\ts10,' + str(s10_old_value)):
+                            line = '\tli\ts10,' + str(s10_new_value) + "\t#This value has been changed!"
+                            l_file[i] = line
+                            update_complete = True
+                            break
+                else:
+                    # Change VR variable
+                    for i in range(len(l_file)):
+                        if l_file[i].startswith('\t.dword\t' + str(int(t6, 16))):
+                            line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
+                            l_file[i] = line
+                            update_complete = True
+                            break
 
             # We didn't find the exact variable to update
             if not update_complete:
-                print("Here")
+                simlog.error("The signature update of the assembly file wasn't complete.")
                 raise Exception
 
             # Rewrite the file
