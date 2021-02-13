@@ -67,10 +67,9 @@ def store_signature_in_memory(i_file):
         l_output = execute_spike.execute_spike_without_debug(i_file.rsplit(".s", 1)[0])
 
         if 'User fetch segfault @ 0x' in l_output:
+            update_complete = False
             l_file = utils.readfile(i_file)
             t6 = (l_output.split('t6 ', 1)[-1]).split('\r\n')[0]
-            while t6.startswith('0') and (t6 != '0'):
-                t6 = t6.split('0', 1)[-1]
             s11 = (l_output.split('sB ', 1)[-1]).split('\r\n')[0]
             new_signature = int(t6, 16) ^ int(s11, 16) # In Decimal
 
@@ -80,11 +79,27 @@ def store_signature_in_memory(i_file):
                 if line == ('.VR' + str(int(t6, 16)) + ":"):
                     line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
                     l_file[i+1] = line
+                    update_complete = True
                     break
+
+            if not update_complete:
+                for i in range(len(l_file)):
+                    if l_file[i].startswith('\t.dword\t' + str(int(t6, 16))):
+                        line = '\t.dword\t' + str(new_signature) + "\t#0x" + str(hex(new_signature))
+                        l_file[i] = line
+                        update_complete = True
+                        break
+
+            # We didn't find the exact variable to update
+            if not update_complete:
+                print("Here")
+                raise Exception
+
             # Rewrite the file
             with open(i_file, 'w') as filehandle:
                 for listitem in l_file:
                     filehandle.write('%s\n' % listitem)
+
             # Compile the file again
             compileUtil.compile_s(i_file)
         else:
