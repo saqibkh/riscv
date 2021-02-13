@@ -50,9 +50,11 @@ extra_instructions = csr_instructions + change_level + mmu_instruction + other_i
 
 ########################################################################################################
 floating_point_instructions = ['fmv.w.x']
-floating_point_arithmetic = ['fcvt.d.lu', 'fdiv.d']
-floating_point_load = ['fld']
-floating_point_store = ['fsd']
+floating_point_arithmetic = ['fcvt.d.lu', 'fdiv.d', 'fdiv.s', 'fcvt.s.l', 'fcvt.s.w', 'fmul.s', 'fmul.d',
+                             'fcvt.l.s', 'fsub.s', 'fadd.s', 'fcvt.d.s', 'fmv.x.d', 'fcvt.s.d']
+floating_point_comparision = ['flt.s', 'fle.s']
+floating_point_load = ['fld', 'flw']
+floating_point_store = ['fsd', 'fsw']
 ########################################################################################################
 
 
@@ -60,6 +62,6 @@ all_instructions = all_arithmetic_instructions + branch_instructions + load_stor
                    extra_instructions + floating_point_instructions
 
 reg_modified_instructions = all_arithmetic_instructions + load_instructions + branch_unconditional_instructions + \
-                            floating_point_load + floating_point_arithmetic
+                            floating_point_load + floating_point_arithmetic + floating_point_comparision
 reg_unmodified_instructions = store_instructions + branch_conditional_instructions + other_instructions + \
                               floating_point_store

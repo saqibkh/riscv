@@ -55,7 +55,7 @@ def checkFileExists(i_filename):
 
 
 def main(argv):
-    l_test = "TRIAL3"
+    l_test = "ALL"
     l_enable_extras = True
     simlog = sim_logging.SIMLOG()
 
