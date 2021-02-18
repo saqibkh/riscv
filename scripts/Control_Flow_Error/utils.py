@@ -19,9 +19,6 @@ signature_checking_registers = ['t6', 's11', 's10']
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
 
-# This address is where the program execution will jmp to in case the software signatures don't match
-exception_handler_address = '100'
-
 # This the the number of times the executable file will be run to get the execution time.
 # The higher the number, the higher the accuracy.
 i_execution_time_loop = 10
