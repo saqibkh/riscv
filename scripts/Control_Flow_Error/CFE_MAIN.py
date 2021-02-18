@@ -57,7 +57,7 @@ def checkFileExists(i_filename):
 
 def main(argv):
     l_test = "ALL"
-    l_enable_extras = True
+    l_enable_extras = False
     simlog = sim_logging.SIMLOG()
 
     if len(sys.argv) == 1:
@@ -314,6 +314,7 @@ def main(argv):
 
         # Update the asm file after all reg values have been modified
         trial3.update_registers(trial3_file)
+        compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
         simlog.info("Finished processing TRIAL3")
 
         # Get the memory_size of the original and modified file and find it's diff
@@ -365,6 +366,7 @@ def main(argv):
 
         # Update the asm file after all reg values have been modified
         trial3_1.update_registers_update(trial3_1_file)
+        compileUtil.compile_s(trial3_1_file)  # Compile the newly created assembly file to generate a static binary
         simlog.info("Finished processing TRIAL3_1")
 
         # Get the memory_size of the original and modified file and find it's diff
