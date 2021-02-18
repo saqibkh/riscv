@@ -7,7 +7,6 @@ import instructions
 import fileinput
 from os import path
 
-
 ###################################################################################################################
 #
 # This validates the inputs and outputs to each function within the program
@@ -25,6 +24,7 @@ from os import path
 #
 ###################################################################################################################
 
+
 # We are depending on the fact that the compiler isn't stupid enough the check that a register checks it seld
 # such as bne a1,a1,exception_address, because we are using that.
 def update_registers_update(i_file):
@@ -40,9 +40,9 @@ def update_registers_update(i_file):
             print(line, end='')
 
 
-# We used this function in TRIAL3 but we are no longer using this function in TRIAL3_1
 def update_registers(i_file):
     i_found = False
+
     with fileinput.FileInput(i_file, inplace=True, backup='.bak') as file:
         for line in file:
             if line.startswith("\tli\ts11") and not i_found:
@@ -57,11 +57,11 @@ def update_registers(i_file):
                     operands = components[1]
                     operand_to_replace = operands.split(',')[0]
                     print(line.replace(operand_to_replace, "s11", 1), end='')
-                else:
-                    # No more bne to be corrected
                     i_found = False
-                    print(line, end='')
-
+                    continue
+                else:
+                    print("Something unexpected occured")
+                    raise Exception
             else:
                 print(line, end='')
 
@@ -151,6 +151,9 @@ class TRIAL3_1:
 
         self.gather_registers_to_be_checked()
 
+        self.inputs_to_check = self.sort_registers_to_check(self.inputs_to_check)
+        self.outputs_to_check = self.sort_registers_to_check(self.outputs_to_check)
+
         # Generate instruction mapping between .s and .objdump file instructions
         if i_recalculate_reg_values:
             return
@@ -158,6 +161,31 @@ class TRIAL3_1:
         # Generate the new assembly file
         utils.generate_instruction_mapping(self)
         self.generate_TRIAL3_1_file_updated()
+
+    # This sorts the registers from highest to lowest value
+    def sort_registers_to_check(self, i_list_functions_regs):
+        i_original = i_list_functions_regs
+        for i in range(len(i_list_functions_regs)):
+            l_function = i_list_functions_regs[i][0]
+            for j in range(len(i_list_functions_regs[i][1]) - 1):
+                for k in range(j + 1, len(i_list_functions_regs[i][1]), 1):
+                    s1 = i_list_functions_regs[i][1][j][0]
+                    s2 = i_list_functions_regs[i][1][k][0]
+                    x = i_list_functions_regs[i][1][j][1]
+                    y = i_list_functions_regs[i][1][k][1]
+                    decimal_x = int(x, 16)
+                    decimal_y = int(y, 16)
+                    if decimal_y > decimal_x:
+                        self.simlog.debug(str(decimal_y) + " is greater than " + str(decimal_x))
+                        tmp0 = i_list_functions_regs[i][1][j][0]
+                        tmp1 = i_list_functions_regs[i][1][j][1]
+                        i_list_functions_regs[i][1][j][0] = i_list_functions_regs[i][1][k][0]
+                        i_list_functions_regs[i][1][j][1] = i_list_functions_regs[i][1][k][1]
+                        i_list_functions_regs[i][1][k][0] = tmp0
+                        i_list_functions_regs[i][1][k][1] = tmp1
+                    else:
+                        self.simlog.debug(str(decimal_x) + " is greater than " + str(decimal_y))
+        return i_list_functions_regs
 
     def generate_TRIAL3_1_file_updated(self):
         i_function = 0
@@ -176,8 +204,6 @@ class TRIAL3_1:
             # A function will start when the line matches the function name (such as "main:" or "countsetBits:")
             if i_line_asm == self.original_map.functions.f_names[i_function] + ":":
                 function_found = True
-                input_checked = None
-                output_checked = None
 
             if function_found:
                 # Move to the next line of the function
@@ -200,21 +226,12 @@ class TRIAL3_1:
                                           + 'because it is None')
                         continue
 
-                    # If the value is zero then just use bnez
-                    if int(l_value, 16) != 0:
-                        # Don't load the same value into the s11 register for comparison.
-                        # Helps reduce instructions count
-                        if l_value != input_checked:
-                            input_checked = l_value
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
-                            i_line_num_new_asm_file += 1
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
-                                                 + l_register + "," + utils.exception_handler_address)
-                        i_line_num_new_asm_file += 1
-                    else:
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\t' + l_register + ','
-                                                 + utils.exception_handler_address)
-                        i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
+                                             + l_register + "," + utils.exception_handler_address)
+                    i_line_num_new_asm_file += 1
+
 
                 # Find the instruction within the function that calls the return address ("jr ra")
                 # There must be a jump to return address for each function.
@@ -238,21 +255,11 @@ class TRIAL3_1:
                                                   + 'because it is None')
                                 continue
 
-                            # If the value is zero then just use bnez
-                            if int(l_value, 16) != 0:
-                                # Don't load the same value into the s11 register for comparison.
-                                # Helps reduce instructions count.
-                                if l_value != output_checked:
-                                    output_checked = l_value
-                                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
-                                    i_line_num_new_asm_file += 1
-                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
-                                                         + l_register + "," + utils.exception_handler_address)
-                                i_line_num_new_asm_file += 1
-                            else:
-                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\t' + l_register + ','
-                                                         + utils.exception_handler_address)
-                                i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts11,' + l_value)
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + l_register + ','
+                                                     + l_register + "," + utils.exception_handler_address)
+                            i_line_num_new_asm_file += 1
 
                         # Now finish processing this function
                         function_found = False
