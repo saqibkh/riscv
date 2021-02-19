@@ -133,6 +133,9 @@ class TRIAL3_2:
 
         self.gather_registers_to_be_checked()
 
+        self.inputs_to_check = self.sort_registers_to_check(self.inputs_to_check)
+        self.outputs_to_check = self.sort_registers_to_check(self.outputs_to_check)
+
         # Generate instruction mapping between .s and .objdump file instructions
         if i_recalculate_reg_values:
             return
@@ -140,6 +143,31 @@ class TRIAL3_2:
         # Generate the new assembly file
         utils.generate_instruction_mapping(self)
         self.generate_TRIAL3_2_file_updated()
+
+    # This sorts the registers from highest to lowest value
+    def sort_registers_to_check(self, i_list_functions_regs):
+        i_original = i_list_functions_regs
+        for i in range(len(i_list_functions_regs)):
+            l_function = i_list_functions_regs[i][0]
+            for j in range(len(i_list_functions_regs[i][1]) - 1):
+                for k in range(j + 1, len(i_list_functions_regs[i][1]), 1):
+                    s1 = i_list_functions_regs[i][1][j][0]
+                    s2 = i_list_functions_regs[i][1][k][0]
+                    x = i_list_functions_regs[i][1][j][1]
+                    y = i_list_functions_regs[i][1][k][1]
+                    decimal_x = int(x, 16)
+                    decimal_y = int(y, 16)
+                    if decimal_y > decimal_x:
+                        self.simlog.debug(str(decimal_y) + " is greater than " + str(decimal_x))
+                        tmp0 = i_list_functions_regs[i][1][j][0]
+                        tmp1 = i_list_functions_regs[i][1][j][1]
+                        i_list_functions_regs[i][1][j][0] = i_list_functions_regs[i][1][k][0]
+                        i_list_functions_regs[i][1][j][1] = i_list_functions_regs[i][1][k][1]
+                        i_list_functions_regs[i][1][k][0] = tmp0
+                        i_list_functions_regs[i][1][k][1] = tmp1
+                    else:
+                        self.simlog.debug(str(decimal_x) + " is greater than " + str(decimal_y))
+        return i_list_functions_regs
 
     def generate_TRIAL3_2_file_updated(self):
         i_function = 0

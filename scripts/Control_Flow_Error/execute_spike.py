@@ -21,7 +21,7 @@ def store_register_values_in_list(i_list, i_register, i_value):
     else:
         # Loop through the list to check if register is already declared
         for i in range(len(i_list)):
-            if (i_list[i][0] == i_register) and (i_list[i][1] != i_value):
+            if (i_list[i][0] == i_register) and (i_value not in i_list[i]):
                 i_list[i].append(i_value)
                 break
         # If register is not declared then declare the register and value
