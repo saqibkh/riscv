@@ -50,7 +50,8 @@ extra_instructions = csr_instructions + change_level + mmu_instruction + other_i
 
 ########################################################################################################
 floating_point_move = ['fmv.h.x', 'fmv.s.x', 'fmv.d.x', 'fmv.q.x',
-                       'fmv.x.h', 'fmv.x.s', 'fmv.x.d', 'fmv.x.q']
+                       'fmv.x.h', 'fmv.x.s', 'fmv.x.d', 'fmv.x.q',
+                       'fmv.w.x']
 
 floating_point_convert = ['fcvt.h.w', 'fcvt.s.w', 'fcvt.d.w', 'fcvt.q.w',
                           'fcvt.h.l', 'fcvt.s.l', 'fcvt.d.l', 'fcvt.q.l',
