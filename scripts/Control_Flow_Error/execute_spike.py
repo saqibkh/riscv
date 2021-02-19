@@ -13,6 +13,10 @@ import registers
 ''' Start of class definitions'''
 
 
+def store_register_values_in_list(i_list, i_register, i_value):
+    print("Here")
+
+
 # This function will create start the RISCV simulator and then step to the desired address,
 # where it will get all the register values and store it in a list. The list will be returned
 # to the calling function.
@@ -26,30 +30,53 @@ def get_registers_values_at_address(i_executable_file, i_address):
     if i_address is None:
         print("Failed to provide address.")
         return None
+    else:
+        # Create an address that holds 64-bits
+        while len(i_address) != 16:
+            i_address = '0' + i_address
 
     # child is a process that triggers the spike simulator
     child = execute_spike_address(i_executable_file, i_address)
 
-    for i in range(len(registers.regular_registers)):
-        # Get the register values
-        cmd = "reg 0 " + registers.regular_registers[i]
+    while True:
+        for i in range(len(registers.regular_registers)):
+            # Get the register values
+            cmd = "reg 0 " + registers.regular_registers[i]
+            child.sendline(cmd)
+            child.expect([cmd + '\r\n', pexpect.EOF])
+            i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
+
+            # It is possible that we never call this function, which is why we can't get the registers for it.
+            # In this case the reg_vale is '', so change it to None
+            if i_reg_value == '':
+                i_reg_value = None
+            i_reg_list.append([registers.regular_registers[i], i_reg_value])
+
+        for i in range(len(registers.fp_registers)):
+            # Get the register values
+            cmd = "fregs 0 " + registers.fp_registers[i]
+            child.sendline(cmd)
+            child.expect([cmd + '\r\n', pexpect.EOF])
+            i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
+            i_reg_list.append([registers.fp_registers[i], i_reg_value])
+
+        # Step one instruction and then try to go again at the given address to see if this address is reached again
+        cmd = 'r 1'
         child.sendline(cmd)
         child.expect([cmd + '\r\n', pexpect.EOF])
-        i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
 
-        # It is possible that we never call this function, which is why we can't get the registers for it.
-        # In this case the reg_vale is '', so change it to None
-        if i_reg_value == '':
-            i_reg_value = None
-        i_reg_list.append([registers.regular_registers[i], i_reg_value])
-
-    for i in range(len(registers.fp_registers)):
-        # Get the register values
-        cmd = "fregs 0 " + registers.fp_registers[i]
+        cmd = 'until pc 0 ' + i_address
         child.sendline(cmd)
         child.expect([cmd + '\r\n', pexpect.EOF])
-        i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
-        i_reg_list.append([registers.fp_registers[i], i_reg_value])
+
+        cmd = 'pc 0 '
+        child.sendline(cmd)
+        child.expect([cmd + '\r\n', pexpect.EOF])
+        pc = (child.readline()).decode("utf-8")
+
+        #if pc != '0x' + i_address + "\r\n":
+        if True:
+            break
 
     sys.stdout.flush()
     return i_reg_list
