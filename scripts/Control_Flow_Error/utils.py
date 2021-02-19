@@ -26,6 +26,18 @@ i_execution_time_loop = 10
 ''' Commonly used functions will be defined here'''
 
 
+def get_operands(i_instruction):
+    i_operands = (i_instruction.split('\t')[-1]).split(',')
+    for i in range(len(i_operands)):
+        operand = i_operands[i]
+        if '(' in operand:
+            operand = re.search(r"\(([A-Za-z0-9_]+)\)", operand)
+            operand = operand.group(1)
+            i_operands[i] = operand
+    del operand, i
+    return i_operands
+
+
 def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_start_mem_address = None
     i_final_mem_address = None
@@ -44,7 +56,7 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
                 i_final_mem_address = i_object_old.functions.f_instructions[i].address[-1]
 
     # Total memory size of the original file
-    i_old_mem_size = int(i_final_mem_address,16) - int(i_start_mem_address,16)
+    i_old_mem_size = int(i_final_mem_address, 16) - int(i_start_mem_address, 16)
     simlog.debug("Original file starting address=" + i_start_mem_address)
     simlog.debug("Original file final address=" + i_final_mem_address)
     simlog.debug("Original file size = " + str(i_old_mem_size) + "bits")
@@ -63,8 +75,8 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     else:
         simlog.debug('Unable to get execution time from the original file')
 
-##################################################################################################################
-##################################################################################################################
+    ##################################################################################################################
+    ##################################################################################################################
     # Process the new object
     i_start_mem_address = None
     i_final_mem_address = None
@@ -98,8 +110,8 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     else:
         simlog.debug('Unable to get execution time from the modified executable file')
 
-##################################################################################################################
-##################################################################################################################
+    ##################################################################################################################
+    ##################################################################################################################
 
     # Calculate change in file size and percentage increase
     increase_file_size_percentage = ((i_new_mem_size - i_old_mem_size) / i_old_mem_size) * 100
@@ -109,8 +121,9 @@ def get_memory_size_info(i_object_old, i_object_new, simlog):
     # Calculate change in execution time and percentage increase
     if i_execution_time_original_file and i_execution_time_modified_file:
         increase_execution_time_percentage = (i_execution_time_modified_file -
-                                              i_execution_time_original_file)/i_execution_time_original_file * 100
-        simlog.debug("Change in execution time = " + str(i_execution_time_modified_file - i_execution_time_original_file) + "sec")
+                                              i_execution_time_original_file) / i_execution_time_original_file * 100
+        simlog.debug("Change in execution time = " + str(
+            i_execution_time_modified_file - i_execution_time_original_file) + "sec")
         simlog.info("Change in execution time percentage = " + str(increase_execution_time_percentage) + "%")
 
 
@@ -166,6 +179,60 @@ def registers_modified(i_map):
 
     i_registers_modified = remove_duplicates(i_registers_modified)
     return i_registers_modified
+
+
+def registers_value_used_FunctionMap(i_inst_list):
+    i_register_value_used = []
+    i_register_value_not_used = []
+    for i in range(len(i_inst_list)):
+        entries = i_inst_list[i]
+        entries = entries.split(';')
+        for k in range(len(entries)):
+            i_entry = entries[k]
+            # Make sure there are operands within this instruction (ret has no operands)
+            if '\t' in i_entry:
+                i_instruction = i_entry.split('\t')[0]
+                i_operands = get_operands(i_entry)
+                i_source_operand = i_operands[1:]
+                i_destination_operand = i_operands[0]
+
+                # Now cycle though the list of operands to get the registers whose value is used
+                for m in range(len(i_source_operand)):
+
+                    # For a load instruction only source value is used
+                    if (i_instruction in instructions.load_instructions) or \
+                            (i_instruction in instructions.floating_point_load):
+                        if (i_source_operand[m] not in i_register_value_not_used) and (
+                                i_source_operand[m] not in i_register_value_used) and (
+                                i_source_operand[m] in registers.all_registers):
+                            i_register_value_used.append(i_source_operand[m])
+
+                    # For a store instruction both source and destination operands values are used
+                    elif (i_instruction in instructions.store_instructions) or \
+                            (i_instruction in instructions.floating_point_store):
+                        if (i_source_operand[m] not in i_register_value_not_used) and (i_source_operand[m] not in i_register_value_used) and (i_source_operand[m] in registers.all_registers):
+                            i_register_value_used.append(i_source_operand[m])
+                        if (i_destination_operand not in i_register_value_not_used) and (i_destination_operand not in i_register_value_used) and (i_destination_operand in registers.all_registers):
+                            i_register_value_used.append(i_destination_operand)
+
+                    # Includes all other instructions
+                    else:
+                        if (i_source_operand[m] not in i_register_value_not_used) and (i_source_operand[m] not in i_register_value_used) and (i_source_operand[m] in registers.all_registers):
+                            i_register_value_used.append(i_source_operand[m])
+
+                # If instructions that don't have any source_operands
+                if (len(i_source_operand) == 0) and (len(i_destination_operand) > 0) and \
+                        (i_destination_operand in registers.all_registers) \
+                        and (i_destination_operand not in i_register_value_not_used) and \
+                        (i_destination_operand not in i_register_value_used):
+                    i_register_value_used.append(i_destination_operand)
+                    continue
+                else:
+                    if (i_destination_operand not in i_register_value_used) and (i_destination_operand not in i_register_value_not_used) and (i_destination_operand in registers.all_registers):
+                        i_register_value_not_used.append(i_destination_operand)
+
+    i_register_value_used = remove_duplicates(i_register_value_used)
+    return i_register_value_used
 
 
 def registers_used_FunctionMap(i_inst_list):

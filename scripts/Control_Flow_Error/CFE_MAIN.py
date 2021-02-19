@@ -39,6 +39,7 @@ import trial2
 import trial2_1
 import trial3
 import trial3_1
+import trial3_2
 import instructions
 import sim_logging
 
@@ -280,7 +281,7 @@ def main(argv):
 
 #####################################################################################################################
     # Generate TRIAL3
-    if l_test == "ALL" or l_test == "TRIAL3":
+    if l_test == "TRIAL3" or l_test == "TRIAL3":
         simlog.info("------------------------------------------------------------------------------------------------")
         simlog.info("Start processing TRIAL3")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
@@ -382,6 +383,59 @@ def main(argv):
             "---------------------------------------------------------------------------------------------\n\n")
 #####################################################################################################################
 
+#####################################################################################################################
+
+#####################################################################################################################
+    # Generate TRIAL3
+    if l_test == "TRIAL3_2" or l_test == "TRIAL3_2":
+        simlog.info(
+            "------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing TRIAL3_2")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump),
+                                          enable_functionMap=True, C_executable_File=file_c_executable,
+                                          simlog=simlog)
+        original_map = map
+        i_trial3_2 = trial3_2.TRIAL3_2(map)
+        trial3_2_file = argv[0].rsplit('.')[0] + '_trial3_2.s'
+        trial3_2_file_objdump = argv[0].rsplit('.')[0] + '_trial3_2.objdump'
+
+        with open(trial3_2_file, 'w') as filehandle:
+            for listitem in i_trial3_2.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(trial3_2_file)  # Compile the newly created assembly file to generate a static binary
+
+        ## Execute the executable binary again and then re-read the register values that needs to be checked
+        #  at the start and at the end of a function.
+        update_file_required = True
+        # loop until we get the same signature values
+        while update_file_required:
+            trial3_2_s_intermediate_file = utils.readfile(trial3_2_file)
+            trial3_2_obj_intermediate_file = utils.readfile(trial3_2_file.split(".s")[0] + ".objdump")
+            map_new = utils.ControlFlowMapRevised(trial3_2_s_intermediate_file, trial3_2_obj_intermediate_file,
+                                                  enable_functionMap=True,
+                                                  C_executable_File=(file_c_executable + "_trial3"), simlog=simlog)
+
+            i_trial3_2_new = trial3_2.TRIAL3_2(map_new, i_recalculate_reg_values=True)
+            update_file_required = trial3_2.update_values(i_trial3_2, i_trial3_2_new, trial3_2_file)
+            compileUtil.compile_s(
+                trial3_2_file)  # Compile the newly created assembly file to generate a static binary
+            i_trial3_2 = i_trial3_2_new
+            map = map_new
+
+        # Update the asm file after all reg values have been modified
+        trial3_2.update_registers(trial3_2_file)
+        # compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
+
+        simlog.info("Finished processing TRIAL3")
+
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(trial3_2_file), utils.readfile(trial3_2_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(original_map, new_map, simlog=simlog)
+
+        del map, i_trial3_2, trial3_2_file, trial3_2_file_objdump, i_trial3_2_new, new_map, trial3_2_s_intermediate_file
+        del trial3_2_obj_intermediate_file, update_file_required, map_new, original_map
+        simlog.info("---------------------------------------------------------------------------------------------\n\n")
 #####################################################################################################################
 
     # Delete the unnecessary .o .objdump .readelf file

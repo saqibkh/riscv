@@ -92,6 +92,11 @@ class FunctionMap:
     # 4. Fill the list of registers that weren't modified in the function
     # 5. Get a list of registers that are different from start and end along with their different values
     def process_registers(self, i_C_executable_File):
+        # Get a list of registers whose value is used within the function
+        for i in range(len(self.functions)):
+            self.functions[i].registers_value_used = utils.registers_value_used_FunctionMap(
+                self.functions[i].instructions.instruction)
+
         # Get a value of all registers at the start and end of each function
         for i in range(len(self.functions)):
             self.functions[i].initial_register_values = execute_spike.get_registers_values_at_address(
