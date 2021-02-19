@@ -413,7 +413,7 @@ def main(argv):
             trial3_2_obj_intermediate_file = utils.readfile(trial3_2_file.split(".s")[0] + ".objdump")
             map_new = utils.ControlFlowMapRevised(trial3_2_s_intermediate_file, trial3_2_obj_intermediate_file,
                                                   enable_functionMap=True,
-                                                  C_executable_File=(file_c_executable + "_trial3"), simlog=simlog)
+                                                  C_executable_File=(file_c_executable + "_trial3_2"), simlog=simlog)
 
             i_trial3_2_new = trial3_2.TRIAL3_2(map_new, i_recalculate_reg_values=True)
             update_file_required = trial3_2.update_values(i_trial3_2, i_trial3_2_new, trial3_2_file)
@@ -424,9 +424,8 @@ def main(argv):
 
         # Update the asm file after all reg values have been modified
         trial3_2.update_registers(trial3_2_file)
-        # compileUtil.compile_s(trial3_file)  # Compile the newly created assembly file to generate a static binary
-
-        simlog.info("Finished processing TRIAL3")
+        compileUtil.compile_s(trial3_2_file)  # Compile the newly created assembly file to generate a static binary
+        simlog.info("Finished processing TRIAL3_2")
 
         # Get the memory_size of the original and modified file and find it's diff
         new_map = utils.ControlFlowMapRevised(utils.readfile(trial3_2_file), utils.readfile(trial3_2_file_objdump),
