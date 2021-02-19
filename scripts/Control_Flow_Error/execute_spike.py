@@ -14,14 +14,27 @@ import registers
 
 
 def store_register_values_in_list(i_list, i_register, i_value):
-    print("Here")
+
+    # The first value in the list needs  to be initialized so that it can work
+    if len(i_list[0]) == 0:
+        i_list[0] = [i_register, i_value]
+    else:
+        # Loop through the list to check if register is already declared
+        for i in range(len(i_list)):
+            if (i_list[i][0] == i_register) and (i_list[i][1] != i_value):
+                i_list[i].append(i_value)
+                break
+        # If register is not declared then declare the register and value
+        i_list.append([i_register, i_value])
+
+    return i_list
 
 
 # This function will create start the RISCV simulator and then step to the desired address,
 # where it will get all the register values and store it in a list. The list will be returned
 # to the calling function.
 def get_registers_values_at_address(i_executable_file, i_address):
-    i_reg_list = []
+    i_reg_list = [[]]
 
     if isinstance(i_address, list):
         print("Please provide a string of address instead of a list")
@@ -50,7 +63,7 @@ def get_registers_values_at_address(i_executable_file, i_address):
             # In this case the reg_vale is '', so change it to None
             if i_reg_value == '':
                 i_reg_value = None
-            i_reg_list.append([registers.regular_registers[i], i_reg_value])
+            i_reg_list = store_register_values_in_list(i_reg_list, registers.regular_registers[i], i_reg_value)
 
         for i in range(len(registers.fp_registers)):
             # Get the register values
@@ -58,7 +71,7 @@ def get_registers_values_at_address(i_executable_file, i_address):
             child.sendline(cmd)
             child.expect([cmd + '\r\n', pexpect.EOF])
             i_reg_value = ((child.readline()).decode("utf-8")).split("\r\n")[0]
-            i_reg_list.append([registers.fp_registers[i], i_reg_value])
+            i_reg_list = store_register_values_in_list(i_reg_list, registers.fp_registers[i], i_reg_value)
 
         # Step one instruction and then try to go again at the given address to see if this address is reached again
         cmd = 'r 1'
@@ -73,9 +86,7 @@ def get_registers_values_at_address(i_executable_file, i_address):
         child.sendline(cmd)
         child.expect([cmd + '\r\n', pexpect.EOF])
         pc = (child.readline()).decode("utf-8")
-
-        #if pc != '0x' + i_address + "\r\n":
-        if True:
+        if pc != '0x' + i_address + "\r\n":
             break
 
     sys.stdout.flush()
