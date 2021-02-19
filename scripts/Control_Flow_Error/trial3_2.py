@@ -274,9 +274,16 @@ class TRIAL3_2:
             for j in range(len(i_reg_func_used)):
                 if i_reg_func_used[j] in i_reg_parent_modified:
                     reg_name = i_reg_func_used[j]
-                    reg_value = self.get_register_value_from_list(
+                    reg_values = self.get_register_value_from_list(
                         self.original_map.function_map.functions[i].initial_register_values, reg_name)
-                    input_regs_func_to_check.append([reg_name, reg_value])
+
+                    # If we get more than 1 value for this register then don't add it to the list
+                    # of registers to check
+                    if len(reg_values) > 1:
+                        pass
+                    else:
+                        reg_value = reg_values[0]
+                        input_regs_func_to_check.append([reg_name, reg_value])
             self.inputs_to_check.append([i_func_name, input_regs_func_to_check])
 
             # Processing the output registers now
@@ -285,9 +292,17 @@ class TRIAL3_2:
             i_reg_func_modified = self.remove_registers_not_function_arguments(i_reg_func_modified)
             for j in range(len(i_reg_func_modified)):
                 reg_name = i_reg_func_modified[j]
-                reg_value = self.get_register_value_from_list(
+                reg_values = self.get_register_value_from_list(
                     self.original_map.function_map.functions[i].final_register_values, reg_name)
-                output_regs_func_to_check.append([reg_name, reg_value])
+
+                # If we get more than 1 value for this register then don't add it to the list
+                # of registers to check
+                if len(reg_values) > 1:
+                    pass
+                else:
+                    reg_value = reg_values[0]
+                    output_regs_func_to_check.append([reg_name, reg_value])
+
             self.outputs_to_check.append([i_func_name, output_regs_func_to_check])
 
         # CLear variables that will not be used anymore
@@ -297,7 +312,7 @@ class TRIAL3_2:
     def get_register_value_from_list(self, i_list, i_reg):
         for i in range(len(i_list)):
             if i_list[i][0] == i_reg:
-                return i_list[i][1]
+                return i_list[i][1:]
         return None
 
     # Remove the registers from the given list that are not function arguments or return values
