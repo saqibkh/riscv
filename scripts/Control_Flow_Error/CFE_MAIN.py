@@ -70,6 +70,8 @@ def main(argv):
         for i in range(len(argv) - 1):
             if argv[i + 1] == '--enable-extras':
                 l_enable_extras = True
+            elif '--test_' in argv[i + 1]:
+                l_test = argv[i + 1].split("--test_")[-1]
 
     simlog.info("Processing file: " + argv[0])
 
