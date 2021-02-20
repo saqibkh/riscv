@@ -102,8 +102,8 @@ def main(argv):
         simlog.info("Start processing CFCSS")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_cfcss = cfcss.CFCSS(map)
-        cfcss_file = argv[0].rsplit('.')[0] + '_cfcss.s'
-        cfcss_file_objdump = argv[0].rsplit('.')[0] + '_cfcss.objdump'
+        cfcss_file = argv[0].rsplit('.')[0] + '_CFCSS.s'
+        cfcss_file_objdump = argv[0].rsplit('.')[0] + '_CFCSS.objdump'
         with open(cfcss_file, 'w') as filehandle:
             for listitem in i_cfcss.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -125,8 +125,8 @@ def main(argv):
         simlog.info("Start processing YACCA")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_yacca = yacca.YACCA(map)
-        yacca_file = argv[0].rsplit('.')[0] + '_yacca.s'
-        yacca_file_objdump = argv[0].rsplit('.')[0] + '_yacca.objdump'
+        yacca_file = argv[0].rsplit('.')[0] + '_YACCA.s'
+        yacca_file_objdump = argv[0].rsplit('.')[0] + '_YACCA.objdump'
         with open(yacca_file, 'w') as filehandle:
             for listitem in i_yacca.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -148,8 +148,8 @@ def main(argv):
         simlog.info("Start processing ECCA")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_ecca = ecca.ECCA(map)
-        ecca_file = argv[0].rsplit('.')[0] + '_ecca.s'
-        ecca_file_objdump = argv[0].rsplit('.')[0] + '_ecca.objdump'
+        ecca_file = argv[0].rsplit('.')[0] + '_ECCA.s'
+        ecca_file_objdump = argv[0].rsplit('.')[0] + '_ECCA.objdump'
         with open(ecca_file, 'w') as filehandle:
             for listitem in i_ecca.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -171,8 +171,8 @@ def main(argv):
         simlog.info("Start processing RSCFC")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_rscfc = rscfc.RSCFC(map)
-        rscfc_file = argv[0].rsplit('.')[0] + '_rscfc.s'
-        rscfc_file_objdump = argv[0].rsplit('.')[0] + '_rscfc.objdump'
+        rscfc_file = argv[0].rsplit('.')[0] + '_RSCFC.s'
+        rscfc_file_objdump = argv[0].rsplit('.')[0] + '_RSCFC.objdump'
         with open(rscfc_file, 'w') as filehandle:
             for listitem in i_rscfc.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -194,8 +194,8 @@ def main(argv):
         simlog.info("Start processing TRIAL1")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_trial1 = trial1.TRIAL1(map)
-        trial1_file = argv[0].rsplit('.')[0] + '_trial1.s'
-        trial1_file_objdump = argv[0].rsplit('.')[0] + '_trial1.objdump'
+        trial1_file = argv[0].rsplit('.')[0] + '_TRIAL1.s'
+        trial1_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL1.objdump'
         with open(trial1_file, 'w') as filehandle:
             for listitem in i_trial1.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -217,8 +217,8 @@ def main(argv):
         simlog.info("Start processing TRIAL2")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_trial2 = trial2.TRIAL2(map)
-        trial2_file = argv[0].rsplit('.')[0] + '_trial2.s'
-        trial2_file_objdump = argv[0].rsplit('.')[0] + '_trial2.objdump'
+        trial2_file = argv[0].rsplit('.')[0] + '_TRIAL2.s'
+        trial2_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL2.objdump'
         with open(trial2_file, 'w') as filehandle:
             for listitem in i_trial2.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -260,8 +260,8 @@ def main(argv):
         simlog.info("Start processing TRIAL2_1")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_trial2_1 = trial2_1.TRIAL2_1(map)
-        trial2_1_file = argv[0].rsplit('.')[0] + '_trial2_1.s'
-        trial2_1_file_objdump = argv[0].rsplit('.')[0] + '_trial2_1.objdump'
+        trial2_1_file = argv[0].rsplit('.')[0] + '_TRIAL2_1.s'
+        trial2_1_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL2_1.objdump'
         with open(trial2_1_file, 'w') as filehandle:
             for listitem in i_trial2_1.new_asm_file:
                 filehandle.write('%s\n' % listitem)
@@ -290,8 +290,8 @@ def main(argv):
                                           enable_functionMap=True, C_executable_File=file_c_executable, simlog=simlog)
         original_map = map
         i_trial3 = trial3.TRIAL3(map)
-        trial3_file = argv[0].rsplit('.')[0] + '_trial3.s'
-        trial3_file_objdump = argv[0].rsplit('.')[0] + '_trial3.objdump'
+        trial3_file = argv[0].rsplit('.')[0] + '_TRIAL3.s'
+        trial3_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL3.objdump'
 
         with open(trial3_file, 'w') as filehandle:
             for listitem in i_trial3.new_asm_file:
@@ -342,8 +342,8 @@ def main(argv):
                                           simlog=simlog)
         original_map = map
         i_trial3_1 = trial3_1.TRIAL3_1(map)
-        trial3_1_file = argv[0].rsplit('.')[0] + '_trial3_1.s'
-        trial3_1_file_objdump = argv[0].rsplit('.')[0] + '_trial3_1.objdump'
+        trial3_1_file = argv[0].rsplit('.')[0] + '_TRIAL3_1.s'
+        trial3_1_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL3_1.objdump'
 
         with open(trial3_1_file, 'w') as filehandle:
             for listitem in i_trial3_1.new_asm_file:
@@ -398,8 +398,8 @@ def main(argv):
                                           simlog=simlog)
         original_map = map
         i_trial3_2 = trial3_2.TRIAL3_2(map)
-        trial3_2_file = argv[0].rsplit('.')[0] + '_trial3_2.s'
-        trial3_2_file_objdump = argv[0].rsplit('.')[0] + '_trial3_2.objdump'
+        trial3_2_file = argv[0].rsplit('.')[0] + '_TRIAL3_2.s'
+        trial3_2_file_objdump = argv[0].rsplit('.')[0] + '_TRIAL3_2.objdump'
 
         with open(trial3_2_file, 'w') as filehandle:
             for listitem in i_trial3_2.new_asm_file:
