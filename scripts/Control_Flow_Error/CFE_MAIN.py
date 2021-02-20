@@ -415,7 +415,7 @@ def main(argv):
             trial3_2_obj_intermediate_file = utils.readfile(trial3_2_file.split(".s")[0] + ".objdump")
             map_new = utils.ControlFlowMapRevised(trial3_2_s_intermediate_file, trial3_2_obj_intermediate_file,
                                                   enable_functionMap=True,
-                                                  C_executable_File=(file_c_executable + "_trial3_2"), simlog=simlog)
+                                                  C_executable_File=(file_c_executable + "_TRIAL3_2"), simlog=simlog)
 
             i_trial3_2_new = trial3_2.TRIAL3_2(map_new, i_recalculate_reg_values=True)
             update_file_required = trial3_2.update_values(i_trial3_2, i_trial3_2_new, trial3_2_file)
