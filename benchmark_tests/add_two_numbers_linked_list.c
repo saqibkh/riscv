@@ -116,7 +116,6 @@ int main(void)
  
     // create first list 7->5->9->4->6
     push(&first, 6);
-    push(&first, 4);
     push(&first, 9);
     push(&first, 5);
     push(&first, 7);
@@ -125,7 +124,7 @@ int main(void)
  
     // create second list 8->4
     push(&second, 4);
-    push(&second, 8);
+    push(&second, 1);
     printf("Second List is ");
     printList(second);
  
