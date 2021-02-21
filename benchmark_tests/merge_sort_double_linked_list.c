@@ -92,14 +92,6 @@ void print(struct Node *head)
     } 
 } 
   
-// Utility function to swap two integers 
-void swap(int *A, int *B) 
-{ 
-    int temp = *A; 
-    *A = *B; 
-    *B = temp; 
-} 
-  
 // Split a doubly linked list (DLL) into 2 DLLs of 
 // half sizes 
 struct Node *split(struct Node *head) 
