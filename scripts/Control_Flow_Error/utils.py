@@ -26,6 +26,12 @@ i_execution_time_loop = 10
 ''' Commonly used functions will be defined here'''
 
 
+def checkFileExists(i_filename):
+    if not utils.checkFileExists(i_filename):
+        print("file: " + i_filename + " doesn't exist.")
+        raise Exception
+
+
 def get_operands(i_instruction):
     i_operands = (i_instruction.split('\t')[-1]).split(',')
     for i in range(len(i_operands)):
