@@ -20,7 +20,7 @@ arithmetic_instructions = ["add", "addi", "sub", "auipc", "lui", "andi", "addiw"
 logical_instructions = ["xor", "xori", "or", "ori", "and", "andi", "not",
                         "c.or", "c.and", "c.xor"]
 shift_instructions = ["sll", "slli", "srl", "srli", "sra", "srai", "sllw", "slliw", "srliw", "sraiw",
-                      "c.slli", "c.srli"]
+                      "c.slli", "c.srli", "c.srai"]
 swap_instructions = ['amoswap.w']
 compare_instructions = ['slt', 'slti', 'sltu', 'sltiu', 'seqz', 'snez', 'sltz', 'sgtz']
 all_arithmetic_instructions = arithmetic_instructions + logical_instructions + shift_instructions + \
@@ -86,12 +86,14 @@ floating_point_compare = ['feq.s', 'feq.d', 'feq.q',
 all_floating_point_arithmetic = floating_point_move + floating_point_convert + floating_point_arithmetic + \
                                 floating_point_inject_sign + floating_point_min_max + floating_point_compare
 
-floating_point_load = ['flw', 'fld', 'flq']
+floating_point_load = ['flw', 'fld', 'flq',
+                       'c.fld']
 floating_point_store = ['fsw', 'fsd', 'fsq']
+floating_point_load_store = floating_point_load + floating_point_store
 ########################################################################################################
 
 all_instructions = all_arithmetic_instructions + branch_instructions + load_store_instructions +\
-                   extra_instructions + all_floating_point_arithmetic
+                   extra_instructions + all_floating_point_arithmetic + floating_point_load_store
 
 reg_modified_instructions = all_arithmetic_instructions + load_instructions + branch_unconditional_instructions + \
                             all_floating_point_arithmetic + floating_point_load
