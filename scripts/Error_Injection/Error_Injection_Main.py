@@ -34,7 +34,7 @@ def usage():
 
 
 def main(argv):
-    l_test_count = 1
+    l_test_count = 1000
     simlog = sim_logging.SIMLOG()
 
     if len(sys.argv) != 2:
@@ -52,12 +52,13 @@ def main(argv):
     l_object = helper.Error_Injection(file_s, file_objdump, simlog=simlog)
 
     for i in range(l_test_count):
-        l_object.inject_error_return_result()
+        l_object.inject_error_return_result(i)
 
     simlog.info("Total number of error injection tests: " + str(l_test_count))
     simlog.info("Total number of error injection tests that passed: " + str(l_object.result_passed))
     simlog.info("Total number of error injection tests that produced incorrect result: "+str(l_object.result_incorrect))
-    simlog.info("Total number of error injection tests that didn't finish: " + str(l_object.result_exception))
+    simlog.info("Total number of error injection tests that went to correct error handler: " + str(l_object.result_exception_handler))
+    simlog.info("Total number of error injection tests that went to incorrect error handler: " + str(l_object.result_exception))
 
 
 if __name__ == "__main__":
