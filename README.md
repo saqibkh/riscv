@@ -111,3 +111,7 @@ To end the simulation from the debug prompt, press `<control>-<c>` or:
 
 Python: /snap/bin/pycharm-community
 
+
+==============================================
+IDEAS TO EXPLORE
+1) As part of checking the result, also check the stack. Signature is the XOR value of all the contents in the stack. Then load each doubleword and then XOR with the signature, until all items in the stack are accounted for. The final result in the XOR must be 0x0.
