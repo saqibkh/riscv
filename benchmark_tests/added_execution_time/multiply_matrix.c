@@ -1,5 +1,6 @@
 // C program to multiply two square matrices. 
 #include <stdio.h> 
+#include <time.h>
 #define N 4 
 
 // This function multiplies mat1[][] and mat2[][], 
@@ -20,8 +21,8 @@ void multiply(int mat1[][N], int mat2[][N], int res[][N])
 
 int main() 
 {
-
-
+        clock_t t;
+        t = clock();	
 	int mat1[N][N] = { {1, 1, 1, 1}, 
 					{2, 2, 2, 2}, 
 					{3, 3, 3, 3}, 
@@ -44,8 +45,8 @@ int main()
 		printf("\n"); 
 	} 
 
-
-
-
+	t = clock() - t;
+        double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+        printf("Total Execution time: %f seconds\n", time_taken);
 	return 0; 
 }

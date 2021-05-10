@@ -33,10 +33,17 @@ void printArray(int arr[], int size)
 // Driver program to test above functions 
 int main() 
 { 
+	clock_t t;
+        t = clock();
+
 	int arr[] = {64, 34, 25, 12, 22, 11, 90, 45, 34, 71, 50}; 
 	int n = sizeof(arr)/sizeof(arr[0]); 
 	bubbleSort(arr, n); 
 	printf("Sorted array: \n"); 
 	printArray(arr, n); 
+
+	t = clock() - t;
+        double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+        printf("Total Execution time: %f seconds\n", time_taken);
 	return 0; 
 }

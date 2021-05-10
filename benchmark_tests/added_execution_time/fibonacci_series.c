@@ -3,6 +3,9 @@
 
 int main()    
 {
+	clock_t t;
+        t = clock();
+
 	int n1=0,n2=1,n3,i;    
 	int number = 15;
 	printf("\nFibonacci series of %d: ", number);
@@ -14,5 +17,9 @@ int main()
 		n1=n2;    
 		n2=n3;    
 	}
+
+	t = clock() - t;
+        double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+        printf("Total Execution time: %f seconds\n", time_taken);	
 	return 0;  
  }

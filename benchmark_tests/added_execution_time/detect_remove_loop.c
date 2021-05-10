@@ -1,6 +1,7 @@
 // C program to detect and remove loop in linked list
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 /* Link list node */
 struct Node {
@@ -98,6 +99,9 @@ struct Node* newNode(int key)
 /* Driver code*/
 int main()
 {
+    clock_t t;
+    t = clock();
+
     struct Node* head = newNode(50);
     head->next = newNode(20);
     head->next->next = newNode(15);
@@ -111,5 +115,9 @@ int main()
  
     printf("Linked List after removing loop \n");
     printList(head);
+
+    t = clock() - t;
+    double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+    printf("Total Execution time: %f seconds\n", time_taken);
     return 0;
 }

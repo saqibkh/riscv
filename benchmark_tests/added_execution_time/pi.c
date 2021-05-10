@@ -8,7 +8,7 @@
  *  Translated to C from FORTRAN 20 Nov 1993
  */
 #include <stdio.h>
-
+#include <time.h>
 
 void
 myadd(float *sum,float *addend);
@@ -18,8 +18,8 @@ main(int argc, char *argv[]) {
    float ztot, yran, ymult, ymod, x, y, z, pi, prod;
    long int low, ixran, itot, j, iprod;
 
-
-
+   clock_t t;
+   t = clock();
 
       printf("Starting PI...\n");
       ztot = 0.0;
@@ -57,9 +57,9 @@ c   mantissa.
       pi = 4.0 * (float)low/(float)itot;
       printf("Pi = %9.6f ztot=%12.2f itot=%8d\n",pi,ztot,itot);
 
-
-
-
+      t = clock() - t;
+      double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
+      printf("Total Execution time: %f seconds\n", time_taken);
       return 0;
 }
 
