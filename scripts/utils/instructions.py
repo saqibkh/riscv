@@ -88,7 +88,8 @@ all_floating_point_arithmetic = floating_point_move + floating_point_convert + f
 
 floating_point_load = ['flw', 'fld', 'flq',
                        'c.fld']
-floating_point_store = ['fsw', 'fsd', 'fsq']
+floating_point_store = ['fsw', 'fsd', 'fsq',
+                       'c.fsdsp']
 floating_point_load_store = floating_point_load + floating_point_store
 ########################################################################################################
 
