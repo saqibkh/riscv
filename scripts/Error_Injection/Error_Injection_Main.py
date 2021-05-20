@@ -54,6 +54,9 @@ def main(argv):
 
     for i in range(l_test_count):
         l_object.inject_error_return_result(i)
+        # Print msg to let user know that we are alive
+        if (i % 10) == 0:
+            print("Still processing logs. Now at counter " + str(i))
 
     simlog.info("Total number of error injection tests: " + str(l_test_count))
     simlog.info("Total number of error injection tests that passed: " + str(l_object.result_passed))
