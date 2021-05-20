@@ -42,6 +42,7 @@ def main(argv):
         sys.exit()
 
     simlog.info("Processing file: " + argv[0])
+    sys.stdout.flush()
 
     file_s = argv[0]
     utils.checkFileExists(file_s)
@@ -59,6 +60,7 @@ def main(argv):
     simlog.info("Total number of error injection tests that produced incorrect result: "+str(l_object.result_incorrect))
     simlog.info("Total number of error injection tests that went to correct error handler: " + str(l_object.result_exception_handler))
     simlog.info("Total number of error injection tests that went to incorrect error handler: " + str(l_object.result_exception))
+    sys.stdout.flush()
 
 
 if __name__ == "__main__":
