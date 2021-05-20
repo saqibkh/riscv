@@ -180,10 +180,13 @@ def execute_spike_without_debug(i_executable_file):
     child = pexpect.spawn(cmd)
     child.expect(['\r\n', pexpect.EOF])
 
+    l_last_return = 'XXXX'
     l_return = (child.readline()).decode("utf-8")
-    while l_return != '':
+    while (l_return != '') or (l_last_return != l_return):
         l_output += l_return
+        l_last_return = l_return
         l_return = (child.readline()).decode("utf-8")
+
 
     return l_output
 
