@@ -57,6 +57,7 @@ def main(argv):
         # Print msg to let user know that we are alive
         if (i % 10) == 0:
             print("Still processing logs. Now at counter " + str(i))
+            sys.stdout.flush()
 
     simlog.info("Total number of error injection tests: " + str(l_test_count))
     simlog.info("Total number of error injection tests that passed: " + str(l_object.result_passed))
