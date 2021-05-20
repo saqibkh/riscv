@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import sys
 import logging
 import time
 import utils
@@ -251,6 +252,7 @@ class Error_Injection:
 
         else:
             self.simlog.info("Didn't inject any error. Please check manually why")
+            sys.stdout.flush()
 
     def inject_error_return_result_attemp1(self):
         # i_magic will be used as a random number to get the memory location where the error injection will take place
