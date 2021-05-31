@@ -117,3 +117,7 @@ Python: /snap/bin/pycharm-community
 # IDEAS TO EXPLORE
 
 1) As part of checking the result, also check the stack. Signature is the XOR value of all the contents in the stack. Then load each doubleword and then XOR with the signature, until all items in the stack are accounted for. The final result in the XOR must be 0x0.
+Update 05/31/2021: Check the Stack Frame which is different from each procedure/function.
+                   sp -> stack pointer
+                   s0 -> frame pointer
+                   Load all values between $fp and $sp, then XOR all values for comparision.
