@@ -187,7 +187,6 @@ def execute_spike_without_debug(i_executable_file):
         l_last_return = l_return
         l_return = (child.readline()).decode("utf-8")
 
-
     return l_output
 
 
