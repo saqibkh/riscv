@@ -40,6 +40,8 @@ import utils
 import instructions
 import sim_logging
 
+import eddddi
+
 
 def usage():
     print("Usage: Please provide the absolute path for a C program that matches <file>.c")
@@ -92,6 +94,26 @@ def main(argv):
     #################################################################
 
 #####################################################################################################################
+    # Generate EDDDDI
+    if l_test == "ALL" or l_test == "EDDDI":
+        simlog.info("------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing EDDDI")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        i_eddddi = eddddi.EDDDDI(map)
+        eddddi_file = argv[0].rsplit('.')[0] + '_EDDDDI.s'
+        eddddi_file_objdump = argv[0].rsplit('.')[0] + '_EDDDDI.objdump'
+        with open(eddddi_file, 'w') as filehandle:
+            for listitem in i_cfcss.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(eddddi_file)  # Compile the newly created assembly file to generate a static binary
+
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(eddddi_file), utils.readfile(eddddi_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(map, new_map, simlog=simlog)
+
+        del eddddi_file, map, i_eddddi, new_map, eddddi_file_objdump
+        simlog.info("---------------------------------------------------------------------------------------------\n\n")
 
 
 #####################################################################################################################

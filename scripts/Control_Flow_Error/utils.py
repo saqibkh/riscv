@@ -216,14 +216,20 @@ def registers_value_used_FunctionMap(i_inst_list):
                     # For a store instruction both source and destination operands values are used
                     elif (i_instruction in instructions.store_instructions) or \
                             (i_instruction in instructions.floating_point_store):
-                        if (i_source_operand[m] not in i_register_value_not_used) and (i_source_operand[m] not in i_register_value_used) and (i_source_operand[m] in registers.all_registers):
+                        if (i_source_operand[m] not in i_register_value_not_used) and (
+                                i_source_operand[m] not in i_register_value_used) and (
+                                i_source_operand[m] in registers.all_registers):
                             i_register_value_used.append(i_source_operand[m])
-                        if (i_destination_operand not in i_register_value_not_used) and (i_destination_operand not in i_register_value_used) and (i_destination_operand in registers.all_registers):
+                        if (i_destination_operand not in i_register_value_not_used) and (
+                                i_destination_operand not in i_register_value_used) and (
+                                i_destination_operand in registers.all_registers):
                             i_register_value_used.append(i_destination_operand)
 
                     # Includes all other instructions
                     else:
-                        if (i_source_operand[m] not in i_register_value_not_used) and (i_source_operand[m] not in i_register_value_used) and (i_source_operand[m] in registers.all_registers):
+                        if (i_source_operand[m] not in i_register_value_not_used) and (
+                                i_source_operand[m] not in i_register_value_used) and (
+                                i_source_operand[m] in registers.all_registers):
                             i_register_value_used.append(i_source_operand[m])
 
                 # If instructions that don't have any source_operands
@@ -234,7 +240,9 @@ def registers_value_used_FunctionMap(i_inst_list):
                     i_register_value_used.append(i_destination_operand)
                     continue
                 else:
-                    if (i_destination_operand not in i_register_value_used) and (i_destination_operand not in i_register_value_not_used) and (i_destination_operand in registers.all_registers):
+                    if (i_destination_operand not in i_register_value_used) and (
+                            i_destination_operand not in i_register_value_not_used) and (
+                            i_destination_operand in registers.all_registers):
                         i_register_value_not_used.append(i_destination_operand)
 
     i_register_value_used = remove_duplicates(i_register_value_used)
@@ -349,6 +357,20 @@ def is_branch_instruction(i_line):
     else:
         return False
 
+
+def is_arithmetic_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.all_arithmetic_instructions:
+        return True
+    else:
+        return False
+
+def is_load_store_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.load_store_instructions:
+        return True
+    else:
+        return False
 
 def get_instruction(i_line):
     # Definition: This function extracts the instruction from a string line
