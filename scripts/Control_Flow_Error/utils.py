@@ -8,6 +8,8 @@ import datetime
 import random
 import subprocess
 import re
+from typing import List, Any
+
 import instructions
 import registers
 import execute_spike
@@ -38,10 +40,28 @@ def get_operands(i_instruction):
         operand = i_operands[i]
         if '(' in operand:
             operand = re.search(r"\(([A-Za-z0-9_]+)\)", operand)
-            operand = operand.group(1)
-            i_operands[i] = operand
+            if operand is not None:
+                operand = operand.group(1)
+                i_operands[i] = operand
+            # Example case: %hi(.LC0)
+            else:
+                del i_operands[i]
     del operand, i
     return i_operands
+
+
+def get_unique_operands(i_instruction):
+    l_unique_operands = []
+    l_operands = get_operands(i_instruction)
+    for i in range(len(l_operands)):
+        # It is possible that an integer (example -48) exists in the operands list
+        if l_operands[i].isdigit() or l_operands[i].isnumeric() or l_operands[i].startswith('-'):
+            pass
+        elif l_operands[i] == 'zero':
+            pass
+        else:
+            l_unique_operands.append(l_operands[i])
+    return l_unique_operands
 
 
 def get_memory_size_info(i_object_old, i_object_new, simlog):
@@ -345,6 +365,26 @@ def checkFileExists(filename):
     # Input: filename (String)
     # Output: boolean
     return path.exists(filename)
+
+
+def is_unconditional_branch_instruction(i_line):
+    # Definition: This function checks if the instruction defined in i_line is an unconditional branch instruction
+    # Example: 'j\t.L2'
+    inst = i_line.split('\t')[0]
+    if inst in instructions.branch_unconditional_instructions:
+        return True
+    else:
+        return False
+
+
+def is_conditional_branch_instruction(i_line):
+    # Definition: This function checks if the instruction defined in i_line is an conditional branch instruction
+    # Example: 'j\t.L2'
+    inst = i_line.split('\t')[0]
+    if inst in instructions.branch_conditional_instructions:
+        return True
+    else:
+        return False
 
 
 def is_branch_instruction(i_line):

@@ -8,6 +8,8 @@ import datetime
 import random
 import subprocess
 import utils
+import registers
+import instructions
 from os import path
 
 
@@ -43,11 +45,42 @@ class EDDDDI:
         self.simlog = i_map.simlog
         self.original_map = i_map
         self.used_registers_list = []
+        self.duplicate_register_list = []
 
         self.new_asm_file = self.original_map.file_asm
         self.generate_used_registers_list()
+
+        self.replace_duplicate_register()
         self.generate_EDDDDI_file_update()
-        x = 1
+        self.initialize_duplicate_register()
+
+    # This function will be used to replace the duplicate register with actual hardware registers
+    def replace_duplicate_register(self):
+        l_duplicate_registers = []
+        # Step 1: Get a list of actual hardware registers that will be used for duplication
+        for i in range(len(registers.possible_duplicate_registers)):
+            if registers.possible_duplicate_registers[i] not in self.used_registers_list:
+                l_duplicate_registers.append(registers.possible_duplicate_registers[i])
+            # We only need X number of registers, where X is the number of registers used in original program
+            if len(l_duplicate_registers) == len(self.used_registers_list):
+                self.duplicate_register_list = l_duplicate_registers
+                break
+
+    def initialize_duplicate_register(self):
+        for i_line_num in range(len(self.new_asm_file)):
+            i_line = self.new_asm_file[i_line_num]
+            if i_line == 'main:':
+                for i in range(len(self.used_registers_list)):
+                    self.new_asm_file.insert(i_line_num + 1,
+                                             '\tmv\t' + self.duplicate_register_list[i] + "," + self.used_registers_list[i])
+                return
+
+    def get_corresponding_duplicate_register(self, l_operand):
+        for i in range(len(self.used_registers_list)):
+            if l_operand == self.used_registers_list[i]:
+                return self.duplicate_register_list[i]
+        self.simlog.error("Failed to find a corresponding duplicate register for " + l_operand)
+        raise Exception
 
     # This file create a modified assembly file that has duplicate instructions and their checks
     def generate_EDDDDI_file_update(self):
@@ -64,13 +97,47 @@ class EDDDDI:
                 # 1) Arithmetic
                 # 2) Load/Store
                 # 3) Branch instruction
-                if utils.is_arithmetic_instruction(i_line) or utils.is_load_store_instruction(i_line):
-                    self.new_asm_file.insert(i_line_num, '\t'+i_line)
+                if utils.is_arithmetic_instruction(i_line):
+                    l_operands = utils.get_unique_operands(i_line)
+                    for i in range(len(l_operands)):
+                        if l_operands[i] in self.used_registers_list:
+                            i_line = i_line.replace(l_operands[i], self.get_corresponding_duplicate_register(l_operands[i]))
+                    i_line_num += 1
+                    self.new_asm_file.insert(i_line_num, '\t' + i_line)
+                    i_line_num += 1
+                    self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[0] + "," +
+                                             self.get_corresponding_duplicate_register(l_operands[0]) + "," +
+                                             utils.exception_handler_address)
+
+                elif utils.is_load_store_instruction(i_line):
+                    l_operands = utils.get_unique_operands(i_line)
+                    for i in range(len(l_operands)):
+                        if l_operands[i] in self.used_registers_list:
+                            i_line = i_line.replace(l_operands[i], self.get_corresponding_duplicate_register(l_operands[i]))
+                    i_line_num += 1
+                    self.new_asm_file.insert(i_line_num, '\t' + i_line)
+                    i_line_num += 1
+                    self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[0] + "," +
+                                             self.get_corresponding_duplicate_register(l_operands[0]) + "," +
+                                             utils.exception_handler_address)
+
                 elif utils.is_branch_instruction(i_line):
-                    x = 2
+                    # No need to duplicate unconditional branches as there is nothing to check
+                    if utils.is_unconditional_branch_instruction(i_line):
+                        pass
+                    # For conditional branch, check that the operands and their duplicates match
+                    elif utils.is_conditional_branch_instruction(i_line):
+                        for i in range(len(l_operands)):
+                            if l_operands[i] in self.used_registers_list:
+                                i_line_num += 1
+                                self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[i] + "," +
+                                                         self.get_corresponding_duplicate_register(l_operands[i]) +
+                                                         "," + utils.exception_handler_address)
                 else:
                     self.simlog.error("Unrecognized instruction: " + i_line)
                     raise Exception
+
+                i_line_num += 1
             else:
                 i_line_num += 1
 

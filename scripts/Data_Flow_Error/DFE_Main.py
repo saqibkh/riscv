@@ -103,7 +103,7 @@ def main(argv):
         eddddi_file = argv[0].rsplit('.')[0] + '_EDDDDI.s'
         eddddi_file_objdump = argv[0].rsplit('.')[0] + '_EDDDDI.objdump'
         with open(eddddi_file, 'w') as filehandle:
-            for listitem in i_cfcss.new_asm_file:
+            for listitem in i_eddddi.new_asm_file:
                 filehandle.write('%s\n' % listitem)
         compileUtil.compile_s(eddddi_file)  # Compile the newly created assembly file to generate a static binary
 

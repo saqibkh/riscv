@@ -28,3 +28,7 @@ fp_registers = fp_temporaries + fp_saved_registers + fp_arguments_return_values 
 
 
 all_registers = regular_registers + fp_registers
+
+
+# This list will be used for DFE techniques in place of duplicate registers
+possible_duplicate_registers = ['t3', 't4', 't5', 's2', 's3', 's4', 's5', 's6', 's7']
