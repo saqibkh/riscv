@@ -82,6 +82,7 @@ class EDDDDI:
         self.simlog.error("Failed to find a corresponding duplicate register for " + l_operand)
         raise Exception
 
+
     # This file create a modified assembly file that has duplicate instructions and their checks
     def generate_EDDDDI_file_update(self):
 
