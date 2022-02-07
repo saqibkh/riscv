@@ -95,9 +95,9 @@ def main(argv):
 
 #####################################################################################################################
     # Generate EDDDDI
-    if l_test == "ALL" or l_test == "EDDDI":
+    if l_test == "ALL" or l_test == "EDDDDI":
         simlog.info("------------------------------------------------------------------------------------------------")
-        simlog.info("Start processing EDDDI")
+        simlog.info("Start processing EDDDDI")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
         i_eddddi = eddddi.EDDDDI(map)
         eddddi_file = argv[0].rsplit('.')[0] + '_EDDDDI.s'
