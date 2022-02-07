@@ -134,6 +134,9 @@ class EDDDDI:
                                 self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[i] + "," +
                                                          self.get_corresponding_duplicate_register(l_operands[i]) +
                                                          "," + utils.exception_handler_address)
+                # Skip a nop instruction
+                elif i_line == 'nop':
+                    pass
                 else:
                     self.simlog.error("Unrecognized instruction: " + i_line)
                     raise Exception
@@ -173,7 +176,7 @@ class EDDDDI:
                         continue
 
                     # There are few other things we need to ignore, like 'zero' or 'ret'
-                    elif 'ret' in l_operands[k] or 'zero' in l_operands[k]:
+                    elif 'ret' in l_operands[k] or 'zero' in l_operands[k] or 'nop' in l_operands[k]:
                         continue
 
                     # Check if the register is already in the list. If not, then add it
