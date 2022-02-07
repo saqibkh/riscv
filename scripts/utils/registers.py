@@ -31,4 +31,4 @@ all_registers = regular_registers + fp_registers
 
 
 # This list will be used for DFE techniques in place of duplicate registers
-possible_duplicate_registers = ['t3', 't4', 't5', 's2', 's3', 's4', 's5', 's6', 's7']
+possible_duplicate_registers = ['s2', 's3', 's4', 's5', 's6', 's7', 's8', 's9']
