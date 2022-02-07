@@ -17,15 +17,18 @@ import sys
 import getopt
 import pathlib
 
+
 from os import path
 
-#---------Set sys.path for CFE_MAIN execution---------------------------------------
+# ---------Set sys.path for CFE_MAIN execution---------------------------------------
 full_path = os.path.abspath(os.path.dirname(sys.argv[0])).split('riscv')[0]
 sys.path.append(full_path)
 # Walk path and append to sys.path
 for root, dirs, files in os.walk(full_path):
     for dir in dirs:
         sys.path.append(os.path.join(root, dir))
+
+import utils
 
 
 def usage():
@@ -75,8 +78,14 @@ def main(argv):
     else:
         print("Input file is an executable and don't need compilation")
 
+    # Check if the objdump file exists. If it does, then get the starting
+    # address of the main subroutine, so that we can skip initial instructions
+    l_file_objdump = l_file + ".objdump"
+    checkFileExists(l_file_objdump)
+    l_starting_address = get_main_starting_address(l_file_objdump)
+
     # Generate logs
-    spike = testlib.Spike(l_file, l_outout_dir)
+    spike = testlib.Spike(l_file, l_outout_dir, l_starting_address)
 
     print("\nGenerating log file.")
     sys.stdout.flush()
@@ -92,6 +101,21 @@ def main(argv):
     sys.stdout.flush()
     spike.generate_extended_debug_logs()
     print("Extended debug log file generated!\n")
+
+
+##
+# Description: Get the starting address of the main function
+#
+# Input: filename (String)
+# Output: address (String)
+def get_main_starting_address(l_file_objdump):
+    l_file_objdump = utils.readfile(l_file_objdump)
+    for i in range(len(l_file_objdump)):
+        if "<main>:" in l_file_objdump[i]:
+            l_starting_address = l_file_objdump[i].split(' ')[0]
+            while l_starting_address[0] == '0':
+                l_starting_address = l_starting_address[1:]
+            return l_starting_address
 
 
 ##

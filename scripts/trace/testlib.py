@@ -47,12 +47,13 @@ def find_file(path):
 
 class Spike(object):
 
-    def __init__(self, i_binary, i_output_dir):
+    def __init__(self, i_binary, i_output_dir, i_starting_address):
         """Launch spike. Return tuple of its process and the port it's running on."""
         self.file_path = i_binary
         self.file_name = i_binary.split('/')[-1]
         self.output_dir = i_output_dir
         self.last_pc = '0x0000000000000000'
+        self.starting_address = i_starting_address
 
     def generate_logs(self):
         """Generates the stdout from running a binary."""
@@ -78,6 +79,7 @@ class Spike(object):
         self.child = pexpect.spawn(cmd, logfile=fout)
         self.child.expect([':', pexpect.EOF])
 
+        self.step_to_pc(self.starting_address)
         counter = 0
         try:
             while (1):
@@ -121,4 +123,8 @@ class Spike(object):
 
     def step_one_instruction(self):
         self.child.sendline("r 1")
+        self.wait()
+
+    def step_to_pc(self, i_pc):
+        self.child.sendline("until pc 0 " + i_pc)
         self.wait()
