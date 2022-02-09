@@ -64,7 +64,9 @@ class EDDDDI:
             # We only need X number of registers, where X is the number of registers used in original program
             if len(l_duplicate_registers) == len(self.used_registers_list):
                 self.duplicate_register_list = l_duplicate_registers
-                break
+                return
+        self.simlog.error("We don't have enough registers available to duplicate original registers")
+        raise Exception
 
     def initialize_duplicate_register(self):
         for i_line_num in range(len(self.new_asm_file)):
