@@ -101,10 +101,10 @@ class EDDDDI:
                         if l_operands[i] in self.used_registers_list:
                             i_line = i_line.replace(l_operands[i],
                                                     self.get_corresponding_duplicate_register(l_operands[i]))
-                    i_line_num += 1
-                    self.new_asm_file.insert(i_line_num, '\t' + i_line)
                     # We are not checking the value of ra (See notes above)
                     if l_operands[0] != 'ra':
+                        i_line_num += 1
+                        self.new_asm_file.insert(i_line_num, '\t' + i_line)
                         i_line_num += 1
                         self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[0] + "," +
                                                  self.get_corresponding_duplicate_register(l_operands[0]) + "," +
@@ -116,10 +116,10 @@ class EDDDDI:
                         if l_operands[i] in self.used_registers_list:
                             i_line = i_line.replace(l_operands[i],
                                                     self.get_corresponding_duplicate_register(l_operands[i]))
-                    i_line_num += 1
-                    self.new_asm_file.insert(i_line_num, '\t' + i_line)
                     # We are not checking the value of ra (See notes above)
                     if l_operands[0] != 'ra':
+                        i_line_num += 1
+                        self.new_asm_file.insert(i_line_num, '\t' + i_line)
                         i_line_num += 1
                         self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[0] + "," +
                                                  self.get_corresponding_duplicate_register(l_operands[0]) + "," +
