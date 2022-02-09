@@ -32,6 +32,6 @@ all_registers = regular_registers + fp_registers
 
 # This list will be used for DFE techniques in place of duplicate registers
 possible_duplicate_registers = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8', 's9', 's10', 's11',
-                                'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7']
-possible_duplicate_floating_registers = ['fa0', 'fa1', 'fa2', 'fa3', 'fa4', 'fa5', 'fa6', 'fa7',
-                                         'fs0', 'fs1', 'fs2', 'fs3', 'fs4', 'fs5', 'fs6', 'fs7']
+                                'a2', 'a3', 'a4', 'a5', 'a6', 'a7']
+possible_duplicate_floating_registers = ['fa2', 'fa3', 'fa4', 'fa5', 'fa6', 'fa7',
+                                         'fs2', 'fs3', 'fs4', 'fs5', 'fs6', 'fs7']

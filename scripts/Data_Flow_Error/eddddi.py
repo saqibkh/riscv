@@ -96,7 +96,8 @@ class EDDDDI:
             if len(l_duplicate_floating_registers) == len(self.used_floating_registers_list):
                 self.duplicate_floating_register_list = l_duplicate_floating_registers
                 break
-        if len(l_duplicate_floating_registers) != len(self.used_floating_registers_list):
+        if (len(l_duplicate_floating_registers) != len(self.used_floating_registers_list)) and \
+                (len(self.used_floating_registers_list) != 0):
             self.simlog.error("We don't have enough floating point registers available to duplicate original registers")
             raise Exception
 
