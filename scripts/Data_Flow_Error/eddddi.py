@@ -61,7 +61,8 @@ class EDDDDI:
         l_original_registers = []
         l_original_floating_registers = []
         for i in range(len(self.used_registers_list)):
-            if self.used_registers_list[i].startswith('a') or self.used_registers_list[i].startswith('s'):
+            if self.used_registers_list[i].startswith('a') or self.used_registers_list[i].startswith('s') or \
+                    self.used_registers_list[i] == 'gp':
                 l_original_registers.append(self.used_registers_list[i])
             elif self.used_registers_list[i].startswith('fa') or self.used_registers_list[i].startswith('fs'):
                 l_original_floating_registers.append(self.used_registers_list[i])
