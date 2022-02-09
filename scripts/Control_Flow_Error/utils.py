@@ -35,7 +35,7 @@ def checkFileExists(i_filename):
 
 
 def get_operands(i_instruction):
-    i_operands = (i_instruction.split('\t')[-1]).split(',')
+    i_operands = ((i_instruction.split('\t')[-1]).split(' ')[-1]).split(',')
     for i in range(len(i_operands)):
         operand = i_operands[i]
         if '(' in operand:
@@ -405,12 +405,31 @@ def is_arithmetic_instruction(i_line):
     else:
         return False
 
+
+def is_floating_arithmetic_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    inst = inst.split(' ')[0]
+    if inst in instructions.all_floating_point_arithmetic:
+        return True
+    else:
+        return False
+
+
 def is_load_store_instruction(i_line):
     inst = i_line.split('\t')[0]
     if inst in instructions.load_store_instructions:
         return True
     else:
         return False
+
+
+def is_floating_load_store_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.floating_point_load_store:
+        return True
+    else:
+        return False
+
 
 def get_instruction(i_line):
     # Definition: This function extracts the instruction from a string line
