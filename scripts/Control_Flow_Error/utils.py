@@ -367,6 +367,24 @@ def checkFileExists(filename):
     return path.exists(filename)
 
 
+def extract_function_names_asm(i_asm_file):
+    ##
+    # Description: Gets the function names from within the assembly file
+    #
+    # Create a copy of self.f_asm
+    l_func_list = []
+    for i in range(len(i_asm_file)):
+        if i_asm_file[i].startswith('\t'):
+            continue
+        elif i_asm_file[i].startswith('.'):
+            continue
+        else:
+            line = i_asm_file[i]
+            if line is not '':
+                l_func_list.append(i_asm_file[i].strip()[:-1])
+    return l_func_list
+
+
 def is_unconditional_branch_instruction(i_line):
     # Definition: This function checks if the instruction defined in i_line is an unconditional branch instruction
     # Example: 'j\t.L2'

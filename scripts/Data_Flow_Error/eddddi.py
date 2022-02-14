@@ -53,8 +53,10 @@ class EDDDDI:
         self.used_floating_registers_list = []
         self.duplicate_register_list = []
         self.duplicate_floating_register_list = []
+        self.function_names = []
 
         self.new_asm_file = self.original_map.file_asm
+        self.function_names = utils.extract_function_names_asm(self.new_asm_file)
         self.generate_used_registers_list()
         self.generate__duplicate_register_list()
         self.generate_EDDDDI_file_update()
@@ -135,7 +137,22 @@ class EDDDDI:
                                              '\tfmv.d.x\t' + self.duplicate_floating_register_list[i] + ",t0")
                     self.new_asm_file.insert(i_line_num + 1,
                                              '\tfmv.x.d\tt0,' + self.used_floating_registers_list[i])
-                return
+
+            elif "\tcall" in i_line:
+                l_func = (i_line.split('\tcall\t')[-1]).split('\tcall ')[-1]
+                # Only initialize registers if a native function is called because we don't know if they will modify
+                # the register and not restore it.
+                # printf doesn't modify register
+                if (l_func not in self.function_names) and (l_func != 'printf'):
+                    for i in range(len(self.used_registers_list)):
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tmv\t' + self.duplicate_register_list[i] + "," +
+                                                 self.used_registers_list[i])
+                    for i in range(len(self.used_floating_registers_list)):
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tfmv.d.x\t' + self.duplicate_floating_register_list[i] + ",t0")
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tfmv.x.d\tt0,' + self.used_floating_registers_list[i])
 
     def get_corresponding_duplicate_register(self, l_operand):
         for i in range(len(self.used_registers_list)):
