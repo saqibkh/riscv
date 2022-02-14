@@ -22,7 +22,7 @@ from os import path
 #
 # This file contains the helper function for the implementation of EDDI (EDDI)
 # All instructions within a basic block are duplicated, and compare instructions are placed
-# after each original store and branch instruction.
+# after each original and duplicate instruction.
 #
 # Original program must use a limit set of registers, so that we can use the rest of the
 # registers as duplicate registers.
@@ -53,8 +53,10 @@ class EDDI:
         self.used_floating_registers_list = []
         self.duplicate_register_list = []
         self.duplicate_floating_register_list = []
+        self.function_names = []
 
         self.new_asm_file = self.original_map.file_asm
+        self.function_names = utils.extract_function_names_asm(self.new_asm_file)
         self.generate_used_registers_list()
         self.generate__duplicate_register_list()
         self.generate_EDDI_file_update()
@@ -135,7 +137,22 @@ class EDDI:
                                              '\tfmv.d.x\t' + self.duplicate_floating_register_list[i] + ",t0")
                     self.new_asm_file.insert(i_line_num + 1,
                                              '\tfmv.x.d\tt0,' + self.used_floating_registers_list[i])
-                return
+
+            elif "\tcall" in i_line:
+                l_func = (i_line.split('\tcall\t')[-1]).split('\tcall ')[-1]
+                # Only initialize registers if a native function is called because we don't know if they will modify
+                # the register and not restore it.
+                # printf doesn't modify register
+                if (l_func not in self.function_names) and (l_func != 'printf'):
+                    for i in range(len(self.used_registers_list)):
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tmv\t' + self.duplicate_register_list[i] + "," +
+                                                 self.used_registers_list[i])
+                    for i in range(len(self.used_floating_registers_list)):
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tfmv.d.x\t' + self.duplicate_floating_register_list[i] + ",t0")
+                        self.new_asm_file.insert(i_line_num + 1,
+                                                 '\tfmv.x.d\tt0,' + self.used_floating_registers_list[i])
 
     def get_corresponding_duplicate_register(self, l_operand):
         for i in range(len(self.used_registers_list)):
@@ -150,6 +167,7 @@ class EDDI:
     # This file create a modified assembly file that has duplicate instructions and their checks
     def generate_EDDI_file_update(self):
         i_line_num = 0
+        l_operands_to_check = []
         # 1. Loop the asm file lines until the end of file
         while i_line_num < len(self.new_asm_file):
             i_line = self.new_asm_file[i_line_num]
@@ -183,34 +201,41 @@ class EDDI:
 
                     # We are not checking the value of ra (See notes above)
                     if l_operands[0] != 'ra':
-                        i_line_num += 1
-                        self.new_asm_file.insert(i_line_num, '\t' + i_line)
-                        # EDDI requires that we only check when there is a store instruction or branch
-                        if utils.is_store_instruction(i_line) or utils.is_floating_store_instruction(i_line):
+                        if utils.is_store_instruction(i_line) and not utils.is_floating_store_instruction(i_line):
                             if l_operands[0] in self.used_floating_registers_list:
-                                i_line_num += 1
                                 self.new_asm_file.insert(i_line_num, '\t' + "feq.d\tt0," + l_operands[0] + "," +
                                                          self.get_corresponding_duplicate_register(l_operands[0]))
-                                i_line_num += 1
                                 self.new_asm_file.insert(i_line_num, '\t' + "bne\tt0,zero," + utils.exception_handler_address)
+                                i_line_num += 2
                             else:
-                                i_line_num += 1
                                 self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[0] + "," +
                                                          self.get_corresponding_duplicate_register(l_operands[0]) + "," +
                                                          utils.exception_handler_address)
+                                i_line_num += 1
+
+                        # Duplicate the instruction
+                        i_line_num += 1
+                        self.new_asm_file.insert(i_line_num, '\t' + i_line)
 
                 elif utils.is_branch_instruction(i_line):
-                    # No need to duplicate unconditional branches as there is nothing to check
-                    if utils.is_unconditional_branch_instruction(i_line):
-                        pass
-                    # For conditional branch, check that the operands and their duplicates match
-                    elif utils.is_conditional_branch_instruction(i_line):
+                    # For conditional branch, check that the operands and their duplicates match are in the
+                    # l_operands_to_check list
+                    if utils.is_conditional_branch_instruction(i_line):
                         for i in range(len(l_operands)):
                             if l_operands[i] in self.used_registers_list:
-                                i_line_num += 1
-                                self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands[i] + "," +
-                                                         self.get_corresponding_duplicate_register(l_operands[i]) +
-                                                         "," + utils.exception_handler_address)
+                                if l_operands[i] not in l_operands_to_check:
+                                    l_operands_to_check.append(l_operands[i])
+
+                    for i in range(len(l_operands_to_check)):
+                        i_line_num += 1
+                        self.new_asm_file.insert(i_line_num, '\t' + "bne\t" + l_operands_to_check[i] + "," +
+                                                 self.get_corresponding_duplicate_register(
+                                                     l_operands_to_check[i]) + "," +
+                                                 utils.exception_handler_address)
+
+                    # Clear the list once we have checked all necessary registers
+                    l_operands_to_check = []
+
                 # Skip a nop instruction
                 elif i_line == 'nop':
                     pass
