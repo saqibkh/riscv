@@ -42,7 +42,7 @@ import sim_logging
 
 import eddddi
 import eddi
-
+import swift
 
 def usage():
     print("Usage: Please provide the absolute path for a C program that matches <file>.c")
@@ -142,7 +142,28 @@ def main(argv):
             "---------------------------------------------------------------------------------------------\n\n")
 
 #####################################################################################################################
+    # Generate SWIFT
+    if l_test == "ALL" or l_test == "SWIFT":
+        simlog.info(
+            "------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing SWIFT")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        i_swift = swift.SWIFT(map)
+        swift_file = argv[0].rsplit('.')[0] + '_SWIFT.s'
+        swift_file_objdump = argv[0].rsplit('.')[0] + '_SWIFT.objdump'
+        with open(swift_file, 'w') as filehandle:
+            for listitem in i_swift.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(swift_file)  # Compile the newly created assembly file to generate a static binary
 
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(swift_file), utils.readfile(swift_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(map, new_map, simlog=simlog)
+
+        del swift_file, map, i_swift, new_map, swift_file_objdump
+        simlog.info(
+            "---------------------------------------------------------------------------------------------\n\n")
 
 #####################################################################################################################
 

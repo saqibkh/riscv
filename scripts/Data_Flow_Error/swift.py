@@ -17,9 +17,11 @@ from os import path
 #
 #
 #
-# This file contains the helper function for the implementation of EDDI (EDDI)
-# All instructions within a basic block are duplicated, and compare instructions are placed
-# after each original store and branch instruction.
+# This file contains the helper function for the implementation of SWIFT
+# Swift is a selective code duplication mechanism based on the instructions.
+# It is an improved version of SWIFT. In this technique all instructions in the
+# basic block except store instructions are duplicated. Compare instructions
+# have to be placed before store and branch instructions to compare the result.
 #
 # Original program must use a limit set of registers, so that we can use the rest of the
 # registers as duplicate registers.
@@ -42,7 +44,7 @@ from os import path
 ##############################################################################################################
 
 
-class EDDI:
+class SWIFT:
     def __init__(self, i_map):
         self.simlog = i_map.simlog
         self.original_map = i_map
@@ -56,7 +58,7 @@ class EDDI:
         self.function_names = utils.extract_function_names_asm(self.new_asm_file)
         self.generate_used_registers_list()
         self.generate__duplicate_register_list()
-        self.generate_EDDI_file_update()
+        self.generate_SWIFT_file_update()
         self.initialize_duplicate_register()
 
     # This function will find and replace the operand with its duplicate
@@ -162,7 +164,7 @@ class EDDI:
         raise Exception
 
     # This file create a modified assembly file that has duplicate instructions and their checks
-    def generate_EDDI_file_update(self):
+    def generate_SWIFT_file_update(self):
         i_line_num = 0
         l_operands_to_check = []
         # 1. Loop the asm file lines until the end of file
@@ -210,9 +212,10 @@ class EDDI:
                                                          utils.exception_handler_address)
                                 i_line_num += 1
 
-                        # Duplicate the instruction
-                        i_line_num += 1
-                        self.new_asm_file.insert(i_line_num, '\t' + i_line)
+                        # Duplicate the instruction only if it is load
+                        if utils.is_load_instruction(i_line) and not utils.is_floating_load_instruction(i_line):
+                            i_line_num += 1
+                            self.new_asm_file.insert(i_line_num, '\t' + i_line)
 
                 elif utils.is_branch_instruction(i_line):
                     # For conditional branch, check that the operands and their duplicates match are in the
