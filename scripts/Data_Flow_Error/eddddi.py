@@ -55,6 +55,21 @@ class EDDDDI:
         self.generate_EDDDDI_file_update()
         self.initialize_duplicate_register()
 
+    # This function will find and replace the operand with its duplicate
+    # Note; it is important to match the operands otherwise mv a5, fa5 will be replaced with mv s3, fs3
+    def replace_operands_with_duplicate(self, i_original_line, i_original_operand, i_duplicate_operand):
+        i_inst = (i_original_line.split(' '))[0].split('\t')[0]
+        i_new_line = i_inst + "\t"
+        i_operands = ((i_original_line.split(' '))[-1].split('\t')[-1]).split(',')
+        for i in range(len(i_operands)):
+            if (i_original_operand in i_operands[i]) and not (("f" + i_original_operand) in i_operands[i]):
+                i_operands[i] = i_operands[i].replace(i_original_operand, i_duplicate_operand)
+            i_new_line += i_operands[i] + ","
+
+        i_new_line = i_new_line[:-1]
+        del i, i_duplicate_operand, i_inst, i_original_operand, i_operands
+        return i_new_line
+
     # This function will be used to list of registers that duplicate the original registers.
     def generate__duplicate_register_list(self):
         # Step 0: Seperate general and floating point registers in self.used_register_list
@@ -139,14 +154,14 @@ class EDDDDI:
                 # 1) Arithmetic
                 # 2) Load/Store
                 # 3) Branch instruction
-                if i_line_num == 188:
-                    x = 1
                 if utils.is_arithmetic_instruction(i_line) or utils.is_floating_arithmetic_instruction(i_line):
                     l_operands = utils.get_unique_operands(i_line)
                     for i in range(len(l_operands)):
-                        if l_operands[i] in self.used_registers_list:
-                            i_line = i_line.replace(l_operands[i],
+                        if (l_operands[i] in self.used_registers_list) or \
+                                (l_operands[i] in self.used_floating_registers_list):
+                            i_line = self.replace_operands_with_duplicate(i_line, l_operands[i],
                                                     self.get_corresponding_duplicate_register(l_operands[i]))
+
                     # We are not checking the value of ra (See notes above)
                     if l_operands[0] != 'ra':
                         i_line_num += 1
@@ -167,9 +182,12 @@ class EDDDDI:
                 elif utils.is_load_store_instruction(i_line) or utils.is_floating_load_store_instruction(i_line):
                     l_operands = utils.get_unique_operands(i_line)
                     for i in range(len(l_operands)):
-                        if l_operands[i] in self.used_registers_list:
-                            i_line = i_line.replace(l_operands[i],
-                                                    self.get_corresponding_duplicate_register(l_operands[i]))
+                        if (l_operands[i] in self.used_registers_list) or \
+                                (l_operands[i] in self.used_floating_registers_list):
+                            i_line = self.replace_operands_with_duplicate(i_line, l_operands[i],
+                                                                          self.get_corresponding_duplicate_register(
+                                                                              l_operands[i]))
+
                     # We are not checking the value of ra (See notes above)
                     if l_operands[0] != 'ra':
                         i_line_num += 1
