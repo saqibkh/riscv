@@ -118,28 +118,28 @@ def main(argv):
 
 
 #####################################################################################################################
-        # Generate EDDI
-        if l_test == "ALL" or l_test == "EDDI":
-            simlog.info(
-                "------------------------------------------------------------------------------------------------")
-            simlog.info("Start processing EDDI")
-            map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
-            i_eddi = eddi.EDDI(map)
-            eddi_file = argv[0].rsplit('.')[0] + '_EDDI.s'
-            eddi_file_objdump = argv[0].rsplit('.')[0] + '_EDDI.objdump'
-            with open(eddi_file, 'w') as filehandle:
-                for listitem in i_eddi.new_asm_file:
-                    filehandle.write('%s\n' % listitem)
-            compileUtil.compile_s(eddi_file)  # Compile the newly created assembly file to generate a static binary
+    # Generate EDDI
+    if l_test == "ALL" or l_test == "EDDI":
+        simlog.info(
+            "------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing EDDI")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        i_eddi = eddi.EDDI(map)
+        eddi_file = argv[0].rsplit('.')[0] + '_EDDI.s'
+        eddi_file_objdump = argv[0].rsplit('.')[0] + '_EDDI.objdump'
+        with open(eddi_file, 'w') as filehandle:
+            for listitem in i_eddi.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(eddi_file)  # Compile the newly created assembly file to generate a static binary
 
-            # Get the memory_size of the original and modified file and find it's diff
-            new_map = utils.ControlFlowMapRevised(utils.readfile(eddi_file), utils.readfile(eddi_file_objdump),
-                                                  simlog=simlog)
-            utils.get_memory_size_info(map, new_map, simlog=simlog)
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(eddi_file), utils.readfile(eddi_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(map, new_map, simlog=simlog)
 
-            del eddi_file, map, i_eddi, new_map, eddi_file_objdump
-            simlog.info(
-                "---------------------------------------------------------------------------------------------\n\n")
+        del eddi_file, map, i_eddi, new_map, eddi_file_objdump
+        simlog.info(
+            "---------------------------------------------------------------------------------------------\n\n")
 
 #####################################################################################################################
 
