@@ -22,7 +22,7 @@ logical_instructions = ["xor", "xori", "or", "ori", "and", "andi", "not",
 shift_instructions = ["sll", "slli", "srl", "srli", "sra", "srai", "sllw", "slliw", "srliw", "sraiw",
                       "c.slli", "c.srli", "c.srai"]
 swap_instructions = ['amoswap.w']
-compare_instructions = ['slt', 'slti', 'sltu', 'sltiu', 'seqz', 'snez', 'sltz', 'sgtz']
+compare_instructions = ['slt', 'slti', 'sltu', 'sltiu', 'seqz', 'snez', 'sltz', 'sgtz', 'sgt']
 all_arithmetic_instructions = arithmetic_instructions + logical_instructions + shift_instructions + \
                               swap_instructions + compare_instructions
 ########################################################################################################
