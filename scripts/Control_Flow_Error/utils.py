@@ -423,9 +423,41 @@ def is_load_store_instruction(i_line):
         return False
 
 
+def is_store_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.store_instructions:
+        return True
+    else:
+        return False
+
+
+def is_load_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.load_instructions:
+        return True
+    else:
+        return False
+
+
 def is_floating_load_store_instruction(i_line):
     inst = i_line.split('\t')[0]
     if inst in instructions.floating_point_load_store:
+        return True
+    else:
+        return False
+
+
+def is_floating_load_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.floating_point_load:
+        return True
+    else:
+        return False
+
+
+def is_floating_store_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst in instructions.floating_point_store:
         return True
     else:
         return False

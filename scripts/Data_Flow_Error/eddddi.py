@@ -15,6 +15,11 @@ from os import path
 
 ##############################################################################################################
 #
+# Note: This approach of implementing DFE techniques won't work. This is because
+#       native functions could modify a0-a7 which are function arguments or return values and we can
+#       duplicate instructions within those native functions. i.e. it will only pass tests, that don't
+#       call native functions. Thus leaving as is.
+#
 # This file contains the helper function for the implementation of EDDDDI (ED4I)
 # All instructions within a basic block are duplicated, and compare instructions are placed
 # after each original and duplicate instruction.
