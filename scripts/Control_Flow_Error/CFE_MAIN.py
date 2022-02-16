@@ -34,6 +34,7 @@ import cfcss
 import yacca
 import ecca
 import rscfc
+import rasm
 import trial1
 import trial2
 import trial2_1
@@ -94,6 +95,29 @@ def main(argv):
     ######   Start generating the Control Flow Error Detection ######
     ######                                                     ######
     #################################################################
+
+#####################################################################################################################
+    # Generate RASM (Random Additive Signature Monitoring for Control Flow Error Detection
+    if l_test == "ALL" or l_test == "RASM":
+        simlog.info("------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing RASM")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        i_rasm = rasm.RASM(map)
+        rasm_file = argv[0].rsplit('.')[0] + '_RASM.s'
+        rasm_file_objdump = argv[0].rsplit('.')[0] + '_RASM.objdump'
+        with open(rasm_file, 'w') as filehandle:
+            for listitem in i_rasm.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(rasm_file)  # Compile the newly created assembly file to generate a static binary
+
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(rasm_file), utils.readfile(rasm_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(map, new_map, simlog=simlog)
+
+        del rasm_file, map, i_rasm, new_map, rasm_file_objdump
+        simlog.info("---------------------------------------------------------------------------------------------\n\n")
+#####################################################################################################################
 
 #####################################################################################################################
     # Generate CFCSS (Control Flow Checking by Software Signature)
