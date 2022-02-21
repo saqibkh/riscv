@@ -751,12 +751,17 @@ class ControlFlowMapRevised:
     # Inputs: f_asm and f_obj objects
     #         enable_functionMap = Creates a map of the functions within this program
     def __init__(self, i_asm, i_obj, enable_functionMap=False, C_executable_File=None, simlog=None):
-        self.file_asm = i_asm
+        self.file_asm = []
         self.file_obj = i_obj
         self.blocks = []
         self.functions = Functions()
         self.function_map = None
         self.simlog = simlog
+
+        # We need to clear the assembly file for any #APP and #NO_APP data
+        for i in range(len(i_asm)):
+            if not (i_asm[i].startswith(" #") or i_asm[i].startswith("#")):
+                self.file_asm.append(i_asm[i])
 
         ''' Here we begin processing the asm and obj file to extract the functions and subsequently the
             control flow graphs'''
@@ -1039,6 +1044,8 @@ class ControlFlowMapRevised:
             if (i_asm[i].startswith('\t')):
                 continue
             elif (i_asm[i].startswith('.')):
+                continue
+            elif (i_asm[i].startswith('#') or i_asm[i].startswith(' #')):
                 continue
             else:
                 line = i_asm[i]
