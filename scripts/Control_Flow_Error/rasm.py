@@ -148,6 +148,8 @@ class RASM:
                     i_operand_1 = (line.split(',')[-3]).split('\t')[-1]
                     if i_instruction == 'bne':
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
+                    elif i_instruction == 'beq':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbne\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
                     elif i_instruction == 'ble':
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tbgt\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
                     elif i_instruction == 'blt':
