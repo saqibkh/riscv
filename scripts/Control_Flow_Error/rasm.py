@@ -85,9 +85,16 @@ class RASM:
                             continue
 
             if block_found:
+
+                # If this is the main block, then load the initial value for the run-time register,
+                # which will be random_Sig - subRanPrevVal
+                if i_line_asm == 'main:':
+                    self.new_asm_file.insert(i_line_num_new_asm_file+1, '\tli\ts11,' + str(self.random_sig[i_block] + self.subRanPrevVal[i_block]))
+                    i_line_num_new_asm_file += 1
+
                 # This is the first update and signature check of the block
                 i_line_num_new_asm_file += 1
-                inst_sub = '\taddi\ts11,s11,' + str(self.subRanPrevVal[i_block])
+                inst_sub = '\taddi\ts11,s11,-' + str(self.subRanPrevVal[i_block])
                 self.new_asm_file.insert(i_line_num_new_asm_file, inst_sub)
                 i_line_num_new_asm_file += 1
                 self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.random_sig[i_block]))
@@ -122,8 +129,37 @@ class RASM:
 
                 # Case 1: Check if the instruction is conditional branch instruction
                 elif utils.is_conditional_branch_instruction(self.new_asm_file[i_line_num_new_asm_file].split('\t', 1)[-1]):
+                    line = self.new_asm_file[i_line_num_new_asm_file]
+                    i_instruction = line.split('\t')[1]
+                    i_target_address = line.split(',')[-1]
+                    i_operand_2 = line.split(',')[-2]
+                    i_operand_1 = (line.split(',')[-3]).split('\t')[-1]
+                    if i_instruction == 'bne':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
+                        i_line_num_new_asm_file += 1
+                        next_block_id = self.original_map.blocks[i_block].next_block_id[0]
+                        l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tj\t' + i_target_address)
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '.RASM' + str(i_block) + ':')
+                        i_line_num_new_asm_file += 1
+                        next_block_id = self.original_map.blocks[i_block].next_block_id[1]
+                        l_adjusted_value = self.random_sig[i_block] - (
+                                    self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                        i_line_num_new_asm_file += 1
+                    else:
+                        x = 1
+
+                    # Remove the old branch instruction as it is now replaced with new implementation
+                    line = self.new_asm_file[i_line_num_new_asm_file]
+                    self.new_asm_file[i_line_num_new_asm_file] += "   #Deleteme"
+                    line = self.new_asm_file[i_line_num_new_asm_file]
                     i_line_num_new_asm_file -= 1
-                    x = 1
+
+
                 # Case 2: Check if the instruction is unconditional branch instruction or load/store or arithmetic
                 else:
                     # If it is a load/store or arithmetic instruction then place the "SUB" sigupdate after the last
