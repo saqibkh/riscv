@@ -31,6 +31,18 @@ class RASM:
         self.process_RASM_blocks()
         self.generate_RASM_file_updated()
 
+        # Delete all lines that includes #Deleteme
+        self.remove_unused_lines()
+
+    def remove_unused_lines(self):
+        i_line_num = 0
+        while i_line_num != len(self.new_asm_file):
+            i_line = self.new_asm_file[i_line_num]
+            if "#Deleteme" in i_line:
+                del self.new_asm_file[i_line_num]
+            else:
+                i_line_num += 1
+
     def generate_RASM_file_updated(self):
         i_block = 0
         i_line_num_new_asm_file = 0
@@ -179,25 +191,57 @@ class RASM:
 
                     next_block_id = self.original_map.blocks[i_block].next_block_id
                     # There must be only one next block for any load/store. or arithmetic, or unconditional branch
-                    # instruction
+                    # instruction, except "jr ra" which can return to several calling functions.
                     if len(next_block_id) > 1:
-                        self.simlog.error("We have more than 1 successor block for block_id=" + i_block)
-                        raise Exception
-                    next_block_id = next_block_id[0]
+                        i_inst = self.new_asm_file[i_line_num_new_asm_file].split('\t')[1]
+                        i_operand = self.new_asm_file[i_line_num_new_asm_file].split('\t')[-1]
+                        if i_inst != 'jr':
+                            self.simlog.error("We have more than 1 successor block for block_id=" + i_block)
+                            raise Exception
+                        elif i_operand != 'ra':
+                            self.simlog.error("We are returning to address stored in register that is not ra")
+                            raise Exception
+                        elif len(next_block_id) == 2:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + self.original_map.blocks[next_block_id[0]].memory[0])
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra' + str(i_block))
+                            i_line_num_new_asm_file += 1
+                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                                                                       self.random_sig[next_block_id[1]],
+                                                                       self.subRanPrevVal[next_block_id[1]])
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
+                            i_line_num_new_asm_file += 1
 
-                    i_adjustedValue = self.random_sig[i_block] - \
-                                      (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
-                    if i_adjustedValue > 0:
-                        i_adjustedValue = i_adjustedValue * -1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, 'RASM_multiple_return_ra' + str(i_block) + ":")
+                            i_line_num_new_asm_file += 1
+                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                                                                       self.random_sig[next_block_id[0]],
+                                                                       self.subRanPrevVal[next_block_id[0]])
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
+
+                        else:
+                            self.simlog.error("We have more than 2 successor block for block_id=" + i_block)
+                            raise Exception
+
+                    # We only have 1 next block to consider
                     else:
-                        i_adjustedValue = abs(i_adjustedValue)
-                    inst_2nd_sig_update = '\taddi\ts11,s11,' + str(i_adjustedValue)
-                    self.new_asm_file.insert(i_line_num_new_asm_file, inst_2nd_sig_update)
-                    del i_adjustedValue, next_block_id, inst_2nd_sig_update
+                        next_block_id = next_block_id[0]
+                        i_adjustedValue = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                        if i_adjustedValue > 0:
+                            i_adjustedValue = i_adjustedValue * -1
+                        else:
+                            i_adjustedValue = abs(i_adjustedValue)
+                        inst_2nd_sig_update = '\taddi\ts11,s11,' + str(i_adjustedValue)
+                        self.new_asm_file.insert(i_line_num_new_asm_file, inst_2nd_sig_update)
+                        del i_adjustedValue, next_block_id, inst_2nd_sig_update
 
-                    # Now skip the uncondtional branch instruction to move to the next block
-                    if utils.is_unconditional_branch_instruction(self.new_asm_file[i_line_num_new_asm_file].split('\t', 1)[-1]):
-                        i_line_num_new_asm_file += 1
+                        # Now skip the uncondtional branch instruction to move to the next block
+                        if utils.is_unconditional_branch_instruction(self.new_asm_file[i_line_num_new_asm_file].split('\t', 1)[-1]):
+                            i_line_num_new_asm_file += 1
 
                 i_block += 1
             i_line_num_new_asm_file += 1
@@ -205,6 +249,14 @@ class RASM:
         if i_block != len(self.original_map.blocks):
             self.simlog.error('Failed to process all blocks. Currently at block id # ' + str(i_block))
             raise Exception
+
+    def calculate_adjusted_value(self, randomNumberBB, randomNumberSuccess, subRanPreValSuccess):
+        i_adjustedValue = randomNumberBB - (randomNumberSuccess + subRanPreValSuccess)
+        if i_adjustedValue > 0:
+            i_adjustedValue = i_adjustedValue * -1
+        else:
+            i_adjustedValue = abs(i_adjustedValue)
+        return i_adjustedValue
 
     def process_RASM_blocks(self):
         # Generate a random unique number for each basic block
