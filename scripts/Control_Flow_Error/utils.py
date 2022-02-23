@@ -621,6 +621,20 @@ def get_matching_asm_line_using_objdump_line(i_instruction_map, i_line):
     return list_matching_objects
 
 
+def get_matching_objdump_line_using_asm_line(i_instruction_map, i_line):
+    # Definition: Checks for a matching line in the asm file and returns the
+    #             corresponding objdump line
+    line_instruction_map = 0
+    list_matching_objects = []
+
+    while line_instruction_map < len(i_instruction_map[0]):
+        if i_line == i_instruction_map[0][line_instruction_map]:
+            i_asm_instruction = i_instruction_map[1][line_instruction_map]
+            list_matching_objects.append(i_asm_instruction)
+        line_instruction_map += 1
+    return list_matching_objects
+
+
 def is_instruction_asm(i_line):
     # Definition: checks if the provided line is a valid instruction in the asm file
     if not i_line.startswith('\t'):

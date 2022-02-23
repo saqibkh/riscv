@@ -121,7 +121,7 @@ class RASM:
                     i_line_num_new_asm_file += 1
 
                 # Here we can have several different cases, each of which requires a different implementation
-                # Case 0: Check if it the final block in the CFGin which case we have to use the returnVal
+                # Case 0: Check if it is the final block in the CFG, in which case we have to use the returnVal
                 if len(self.original_map.blocks[i_block].next_block_id) == 0:
                     returnVal = random.sample(range(1, len(self.original_map.blocks) * 20), 1)[0]
                     returnVal = random.sample(range(1, len(self.original_map.blocks) * 20), 1)[0]
@@ -157,22 +157,34 @@ class RASM:
                     elif i_instruction == 'bgt':
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tble\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
                     else:
-                        x = 1
+                        self.simlog.error("Unable to recognize the branch instruction: " + i_instruction)
+                        raise Exception
+
+                    # Find the block of the jump target. To get that we need to find the matching objdump line of
+                    # the asm line, and extract the address that to jump to. Once we have the address, we can locate
+                    # the block ID.
+                    #l_jump_address = utils.get_matching_objdump_line_using_asm_line(self.instruction_map, self.new_asm_file[i_line_num_new_asm_file+1].split('\t', 1)[-1])[0]
+                    #l_jump_address = (l_jump_address.split(',')[-1]).split(' ')[0]
+
                     i_line_num_new_asm_file += 1
+                    next_blocks = self.original_map.blocks[i_block].next_block_id
                     next_block_id = self.original_map.blocks[i_block].next_block_id[0]
-                    l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                    #l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                    l_adjusted_value = self.calculate_adjusted_value(self.random_sig[i_block],
+                                                                self.random_sig[next_block_id],
+                                                                self.subRanPrevVal[next_block_id])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(l_adjusted_value))
                     i_line_num_new_asm_file += 1
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tj\t' + i_target_address)
                     i_line_num_new_asm_file += 1
                     self.new_asm_file.insert(i_line_num_new_asm_file, '.RASM' + str(i_block) + ':')
                     i_line_num_new_asm_file += 1
                     next_block_id = self.original_map.blocks[i_block].next_block_id[1]
-                    l_adjusted_value = self.random_sig[i_block] - (
-                                self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                    l_adjusted_value = self.calculate_adjusted_value(self.random_sig[i_block],
+                                                                self.random_sig[next_block_id],
+                                                                self.subRanPrevVal[next_block_id])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(l_adjusted_value))
                     i_line_num_new_asm_file += 1
-
 
                     # Remove the old branch instruction as it is now replaced with new implementation
                     line = self.new_asm_file[i_line_num_new_asm_file]
