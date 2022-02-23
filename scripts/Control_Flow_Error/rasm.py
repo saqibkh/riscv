@@ -136,22 +136,31 @@ class RASM:
                     i_operand_1 = (line.split(',')[-3]).split('\t')[-1]
                     if i_instruction == 'bne':
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
-                        i_line_num_new_asm_file += 1
-                        next_block_id = self.original_map.blocks[i_block].next_block_id[0]
-                        l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
-                        i_line_num_new_asm_file += 1
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tj\t' + i_target_address)
-                        i_line_num_new_asm_file += 1
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '.RASM' + str(i_block) + ':')
-                        i_line_num_new_asm_file += 1
-                        next_block_id = self.original_map.blocks[i_block].next_block_id[1]
-                        l_adjusted_value = self.random_sig[i_block] - (
-                                    self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
-                        i_line_num_new_asm_file += 1
+                    elif i_instruction == 'ble':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbgt\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
+                    elif i_instruction == 'blt':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tbge\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
+                    elif i_instruction == 'bge':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tblt\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
+                    elif i_instruction == 'bgt':
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tble\t' + i_operand_1 + "," + i_operand_2 + ",.RASM" + str(i_block))
                     else:
                         x = 1
+                    i_line_num_new_asm_file += 1
+                    next_block_id = self.original_map.blocks[i_block].next_block_id[0]
+                    l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tj\t' + i_target_address)
+                    i_line_num_new_asm_file += 1
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '.RASM' + str(i_block) + ':')
+                    i_line_num_new_asm_file += 1
+                    next_block_id = self.original_map.blocks[i_block].next_block_id[1]
+                    l_adjusted_value = self.random_sig[i_block] - (
+                                self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(abs(l_adjusted_value)))
+                    i_line_num_new_asm_file += 1
+
 
                     # Remove the old branch instruction as it is now replaced with new implementation
                     line = self.new_asm_file[i_line_num_new_asm_file]
