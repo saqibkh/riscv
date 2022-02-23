@@ -238,7 +238,7 @@ class RASM:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
 
                         else:
-                            self.simlog.error("We have more than 2 successor block for block_id=" + i_block)
+                            self.simlog.error("We have more than 2 successor block for block_id=" + str(i_block))
                             raise Exception
 
                     # We only have 1 next block to consider
