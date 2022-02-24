@@ -217,7 +217,6 @@ class RASM:
                     i_line_num_new_asm_file += 1
                     next_blocks = self.original_map.blocks[i_block].next_block_id
                     next_block_id = self.original_map.blocks[i_block].next_block_id[0]
-                    #l_adjusted_value = self.random_sig[i_block] - (self.random_sig[next_block_id] + self.subRanPrevVal[next_block_id])
                     l_adjusted_value = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                 self.random_sig[next_block_id],
                                                                 self.subRanPrevVal[next_block_id])
@@ -295,8 +294,8 @@ class RASM:
                             i_line_num_new_asm_file += 1
 
                             i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
-                                                                       self.random_sig[next_block_id[1]],
-                                                                       self.subRanPrevVal[next_block_id[1]])
+                                                                       self.random_sig[next_block_id[2]],
+                                                                       self.subRanPrevVal[next_block_id[2]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
@@ -316,7 +315,7 @@ class RASM:
                             i_line_num_new_asm_file += 1
                             i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[1]],
-                                                                       self.subRanPrevVal[next_block_id[0]])
+                                                                       self.subRanPrevVal[next_block_id[1]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
