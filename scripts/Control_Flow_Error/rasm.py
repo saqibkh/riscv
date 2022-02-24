@@ -216,11 +216,11 @@ class RASM:
                             self.simlog.error("We are returning to address stored in register that is not ra")
                             raise Exception
                         elif len(next_block_id) == 2:
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + self.original_map.blocks[next_block_id[0]].memory[0])
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#This address needs to be changed")
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra' + str(i_block))
                             i_line_num_new_asm_file += 1
-                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[1]],
                                                                        self.subRanPrevVal[next_block_id[1]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
@@ -230,25 +230,25 @@ class RASM:
 
                             self.new_asm_file.insert(i_line_num_new_asm_file, 'RASM_multiple_return_ra' + str(i_block) + ":")
                             i_line_num_new_asm_file += 1
-                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[0]],
                                                                        self.subRanPrevVal[next_block_id[0]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
 
-                        elif len(next_block_id) == 2:
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + self.original_map.blocks[next_block_id[0]].memory[0])
+                        elif len(next_block_id) == 3:
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#This address needs to be changed")
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block))
                             i_line_num_new_asm_file += 1
 
-                            self.new_asm_file.insert(i_line_num_new_asm_file,'\tli\ts10,' + self.original_map.blocks[next_block_id[1]].memory[0])
+                            self.new_asm_file.insert(i_line_num_new_asm_file,'\tli\ts10,0x' + self.original_map.blocks[next_block_id[1]].memory[0] + "#This address needs to be changed")
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_2_' + str(i_block))
                             i_line_num_new_asm_file += 1
 
-                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[1]],
                                                                        self.subRanPrevVal[next_block_id[1]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
@@ -258,7 +258,7 @@ class RASM:
 
                             self.new_asm_file.insert(i_line_num_new_asm_file, 'RASM_multiple_return_ra_1_' + str(i_block) + ":")
                             i_line_num_new_asm_file += 1
-                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[0]],
                                                                        self.subRanPrevVal[next_block_id[0]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
@@ -268,7 +268,7 @@ class RASM:
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file,'RASM_multiple_return_ra_2_' + str(i_block) + ":")
                             i_line_num_new_asm_file += 1
-                            i_adjustedValue = calculate_adjusted_value(self.random_sig[i_block],
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                        self.random_sig[next_block_id[1]],
                                                                        self.subRanPrevVal[next_block_id[0]])
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
