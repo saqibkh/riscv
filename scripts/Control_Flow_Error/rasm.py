@@ -34,6 +34,52 @@ class RASM:
         # Delete all lines that includes #Deleteme
         self.remove_unused_lines()
 
+    def update_jump_address(self, i_old_objdump, i_new_asm, i_new_objdump):
+        i_return_func = []
+        for i in range(len(i_new_asm)):
+            i_line = i_new_asm[i]
+            if "#Update_Address" in i_line:
+                i_func = i_line.rsplit(" ", 1)[-1]
+                if i_func not in i_return_func:
+                    i_return_func.append(i_func)
+
+        i_new_next_address_func_call = []
+        for i in range(len(i_return_func)):
+            for j in range(len(i_new_objdump)):
+                i_line = i_new_objdump[j]
+                if (("<" + i_return_func[i] + ">") in i_line) and ('jal' in i_line):
+                    i_address_next_instruction = (i_new_objdump[j+1].split('\t')[0]).strip()[:-1]
+                    i_new_next_address_func_call.append(i_address_next_instruction)
+
+        i_old_next_address_func_call = []
+        for i in range(len(i_return_func)):
+            for j in range(len(i_old_objdump)):
+                i_line = i_old_objdump[j]
+                if (("<" + i_return_func[i] + ">") in i_line) and ('jal' in i_line):
+                    i_address_next_instruction = (i_old_objdump[j + 1].split('\t')[0]).strip()[:-1]
+                    i_old_next_address_func_call.append(i_address_next_instruction)
+
+        # Both lists should be the same length
+        if len(i_old_next_address_func_call) != len(i_new_next_address_func_call):
+            self.simlog.error("Length of i_old_next_address_func_call doesn't match i_new_next_address_func_call")
+            raise Exception
+
+        for i in range(len(i_new_asm)):
+            i_line = i_new_asm[i]
+            if "#Update_Address" in i_line:
+                i_target_address = ((i_line.split('#')[0]).split(',')[-1]).split('0x')[-1]
+                i_new_address = self.find_matching_item(i_target_address, i_old_next_address_func_call, i_new_next_address_func_call)
+                i_new_asm[i] = '\tli\ts10,0x' + str(i_new_address)
+
+        return i_new_asm
+
+    def find_matching_item(self, i_item, i_old_list, i_new_list):
+        for i in range(len(i_old_list)):
+            if i_item == i_old_list[i]:
+                return i_new_list[i]
+        self.simlog.error("Failed to find the matching item: " + i_item + " in the old list")
+        raise Exception
+
     def remove_unused_lines(self):
         i_line_num = 0
         while i_line_num != len(self.new_asm_file):
@@ -216,7 +262,7 @@ class RASM:
                             self.simlog.error("We are returning to address stored in register that is not ra")
                             raise Exception
                         elif len(next_block_id) == 2:
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#This address needs to be changed")
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra' + str(i_block))
                             i_line_num_new_asm_file += 1
@@ -238,12 +284,12 @@ class RASM:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
 
                         elif len(next_block_id) == 3:
-                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#This address needs to be changed")
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block))
                             i_line_num_new_asm_file += 1
 
-                            self.new_asm_file.insert(i_line_num_new_asm_file,'\tli\ts10,0x' + self.original_map.blocks[next_block_id[1]].memory[0] + "#This address needs to be changed")
+                            self.new_asm_file.insert(i_line_num_new_asm_file,'\tli\ts10,0x' + self.original_map.blocks[next_block_id[1]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_2_' + str(i_block))
                             i_line_num_new_asm_file += 1

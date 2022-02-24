@@ -110,6 +110,13 @@ def main(argv):
                 filehandle.write('%s\n' % listitem)
         compileUtil.compile_s(rasm_file)  # Compile the newly created assembly file to generate a static binary
 
+        # Re-read the objdump file to update the address of the jump target
+        i_new_asm_file = i_rasm.update_jump_address(utils.readfile(file_objdump), utils.readfile(rasm_file), utils.readfile(rasm_file_objdump))
+        with open(rasm_file, 'w') as filehandle:
+            for listitem in i_new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(rasm_file)  # Compile the newly created assembly file to generate a static binary
+
         # Get the memory_size of the original and modified file and find it's diff
         new_map = utils.ControlFlowMapRevised(utils.readfile(rasm_file), utils.readfile(rasm_file_objdump),
                                               simlog=simlog)
