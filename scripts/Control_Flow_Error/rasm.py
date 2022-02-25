@@ -318,13 +318,9 @@ class RASM:
 
                         elif len(next_block_id) > 1:
                             for i in range(len(next_block_id) - 1):
-                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' +
-                                                         self.original_map.blocks[next_block_id[i]].memory[
-                                                             0] + "#Update_Address " + str(
-                                    self.original_map.blocks[i_block].func_name))
+                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[i]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                                 i_line_num_new_asm_file += 1
-                                self.new_asm_file.insert(i_line_num_new_asm_file,
-                                                         '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block))
+                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block+i))
                                 i_line_num_new_asm_file += 1
 
                             i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
@@ -335,8 +331,7 @@ class RASM:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
                             i_line_num_new_asm_file += 1
                             for i in range(len(next_block_id) - 1):
-                                self.new_asm_file.insert(i_line_num_new_asm_file,
-                                                         'RASM_multiple_return_ra_1_' + str(i_block) + ":")
+                                self.new_asm_file.insert(i_line_num_new_asm_file, 'RASM_multiple_return_ra_1_' + str(i_block+i) + ":")
                                 i_line_num_new_asm_file += 1
                                 i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
                                                                                 self.random_sig[next_block_id[i]],
