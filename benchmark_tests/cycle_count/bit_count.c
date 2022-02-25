@@ -24,9 +24,10 @@ unsigned int countSetBits(unsigned int n)
 /* Program to test function countSetBits */
 int main() 
 {
-        printf("%ld\n", read_cycles());
+	int cycle_count = read_cycles();
 	int i = 923472389;
 	printf("Number of bits = %d\n", countSetBits(i));
-	printf("%ld\n", read_cycles());
+	cycle_count = read_cycles() - cycle_count;
+	printf("cycle_count=%ld\n", cycle_count);
 	return 0; 
 }

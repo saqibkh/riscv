@@ -64,6 +64,22 @@ def get_unique_operands(i_instruction):
     return l_unique_operands
 
 
+def get_instruction_count(i_old_executable, i_old_map, i_new_executable, i_new_map, simlog):
+    i_starting_mem_address = i_old_map.blocks[0].memory[0]
+    i_final_mem_address = i_old_map.blocks[-1].memory[-1]
+    l_output_old = execute_spike.execute_spike_get_log_start_end_address(i_old_executable, i_starting_mem_address,
+                                                                         i_final_mem_address)
+
+    i_starting_mem_address = i_new_map.blocks[0].memory[0]
+    i_final_mem_address = i_new_map.blocks[-1].memory[-1]
+    l_output_new = execute_spike.execute_spike_get_log_start_end_address(i_new_executable, i_starting_mem_address,
+                                                                         i_final_mem_address)
+
+    print("Instruction Count Old=" + str(len(l_output_old)))
+    print("Instruction Count New=" + str(len(l_output_new)))
+    print("Instruction Count Difference=" + str(len(l_output_new) - len(l_output_old)))
+
+
 def get_memory_size_info(i_object_old, i_object_new, simlog):
     i_start_mem_address = None
     i_final_mem_address = None

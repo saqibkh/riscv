@@ -122,6 +122,11 @@ def main(argv):
                                               simlog=simlog)
         utils.get_memory_size_info(map, new_map, simlog=simlog)
 
+        # Get the instruction count from start to the end of this particular program.
+        # Assuming that each instruction  takes 1 cycle count, we can estimate the delay in the
+        # program added by this particular implementation
+        utils.get_instruction_count(file_s.split('.s')[0], map, rasm_file.split('.s')[0], new_map, simlog=simlog)
+
         del rasm_file, map, i_rasm, new_map, rasm_file_objdump
         simlog.info("---------------------------------------------------------------------------------------------\n\n")
 #####################################################################################################################
