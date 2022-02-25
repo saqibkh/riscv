@@ -75,9 +75,11 @@ def get_instruction_count(i_old_executable, i_old_map, i_new_executable, i_new_m
     l_output_new = execute_spike.execute_spike_get_log_start_end_address(i_new_executable, i_starting_mem_address,
                                                                          i_final_mem_address)
 
-    print("Instruction Count Old=" + str(len(l_output_old)))
-    print("Instruction Count New=" + str(len(l_output_new)))
-    print("Instruction Count Difference=" + str(len(l_output_new) - len(l_output_old)))
+    simlog.debug("Instruction Count Old=" + str(len(l_output_old)))
+    simlog.debug("Instruction Count New=" + str(len(l_output_new)))
+    simlog.debug("Instruction Count Difference=" + str(len(l_output_new) - len(l_output_old)))
+    i_percentage_increase = ((len(l_output_new) - len(l_output_old)) / len(l_output_old)) * 100
+    simlog.info("Cycle count increased by " + str(i_percentage_increase) + "%")
 
 
 def get_memory_size_info(i_object_old, i_object_new, simlog):

@@ -203,3 +203,26 @@ def execute_spike_get_execution_time(i_executable_file):
         if "Total Execution time:" in l_return:
             return l_return.split("Total Execution time:")[-1].split(" ")[1]
     return None
+
+#cmd = ['/opt/riscv64/bin/riscv64-unknown-elf-readelf', "-a", source_dir + e_file, '>', source_dir + readelf_file]
+#cmd = " ".join(cmd)
+#result = os.system(cmd)
+def execute_spike_get_log_start_end_address(i_executable_file, i_start_address, i_end_address):
+    cmd = '/opt/riscv/bin/spike -l /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + i_executable_file
+    l_output = ((subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT)).decode("utf-8").split('\n'))
+
+    i_instructions = []
+    instruction_count_begin = False
+    for i in range(len(l_output)):
+        i_line = l_output[i]
+        if "core   0: 0x00" in i_line:
+            l_instruction_address = ((i_line.split("core   0: 0x", 1)[-1]).split(' ')[0]).lstrip('0')
+            if l_instruction_address == i_start_address:
+                instruction_count_begin = True
+
+            if instruction_count_begin:
+                i_instructions.append(i_line)
+                if l_instruction_address == i_end_address:
+                    return i_instructions
+
+
