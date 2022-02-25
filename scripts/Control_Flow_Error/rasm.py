@@ -260,7 +260,7 @@ class RASM:
                         elif i_operand != 'ra':
                             self.simlog.error("We are returning to address stored in register that is not ra")
                             raise Exception
-                        elif len(next_block_id) == 2:
+                        elif len(next_block_id) == 22:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra' + str(i_block))
@@ -282,7 +282,7 @@ class RASM:
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
 
-                        elif len(next_block_id) == 3:
+                        elif len(next_block_id) == 33:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' + self.original_map.blocks[next_block_id[0]].memory[0] + "#Update_Address " + str(self.original_map.blocks[i_block].func_name))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block))
@@ -315,6 +315,39 @@ class RASM:
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
                             i_line_num_new_asm_file += 1
                             self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
+
+                        elif len(next_block_id) > 1:
+                            for i in range(len(next_block_id) - 1):
+                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,0x' +
+                                                         self.original_map.blocks[next_block_id[i]].memory[
+                                                             0] + "#Update_Address " + str(
+                                    self.original_map.blocks[i_block].func_name))
+                                i_line_num_new_asm_file += 1
+                                self.new_asm_file.insert(i_line_num_new_asm_file,
+                                                         '\tbeq\ts10,ra,RASM_multiple_return_ra_1_' + str(i_block))
+                                i_line_num_new_asm_file += 1
+
+                            i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
+                                                                            self.random_sig[next_block_id[-1]],
+                                                                            self.subRanPrevVal[next_block_id[-1]])
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\taddi\ts11,s11,' + str(i_adjustedValue))
+                            i_line_num_new_asm_file += 1
+                            self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
+                            i_line_num_new_asm_file += 1
+                            for i in range(len(next_block_id) - 1):
+                                self.new_asm_file.insert(i_line_num_new_asm_file,
+                                                         'RASM_multiple_return_ra_1_' + str(i_block) + ":")
+                                i_line_num_new_asm_file += 1
+                                i_adjustedValue = self.calculate_adjusted_value(self.random_sig[i_block],
+                                                                                self.random_sig[next_block_id[i]],
+                                                                                self.subRanPrevVal[next_block_id[i]])
+                                self.new_asm_file.insert(i_line_num_new_asm_file,
+                                                         '\taddi\ts11,s11,' + str(i_adjustedValue))
+                                i_line_num_new_asm_file += 1
+                                self.new_asm_file.insert(i_line_num_new_asm_file, '\tjr\tra')
+                                i_line_num_new_asm_file += 1
+
+                            i_line_num_new_asm_file -= 1
 
                         else:
                             self.simlog.error("We have more than 3 successor block for block_id=" + str(i_block) +
