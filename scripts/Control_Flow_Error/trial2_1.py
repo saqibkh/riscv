@@ -27,7 +27,8 @@ from os import path
 # are loaded from memory instruction of being loaded via multiple instructions. This helps in reducing the overall
 # memory requirements for the implementation
 #
-#
+# This is an updated version of SEDIS that loads long expected signatures from the data stored in memory
+# Not all test cases are currently passing
 ###################################################################################################################
 
 

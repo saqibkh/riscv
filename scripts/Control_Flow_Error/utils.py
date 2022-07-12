@@ -653,6 +653,38 @@ def get_matching_objdump_line_using_asm_line(i_instruction_map, i_line):
     return list_matching_objects
 
 
+def get_opposite_branch_instruction(i_line):
+    inst = i_line.split('\t')[0]
+    if inst == 'bne':
+        return('beq')
+    elif inst == 'beq':
+        return('bne')
+
+    elif inst == 'bge':
+        return('blt')
+    elif inst == 'blt':
+        return('bge')
+
+    elif inst == 'bgt':
+        return('ble')
+    elif inst == 'ble':
+        return('bgt')
+
+    elif inst == 'bnez':
+        return('beqz')
+    elif inst == 'beqz':
+        return('bnez')
+
+    elif inst == 'bltz':
+        return('bgez')
+    elif inst == 'bgez':
+        return('bltz')
+
+    else:
+        self.simlog.error("Unrecognized branch instruction: " + str(i_line))
+        raise Exception
+
+
 def is_instruction_asm(i_line):
     # Definition: checks if the provided line is a valid instruction in the asm file
     if not i_line.startswith('\t'):

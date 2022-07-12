@@ -41,8 +41,10 @@ import trial2_1
 import trial3
 import trial3_1
 import trial3_2
+import SEDIS_2_0 as sedis_2_0
 import instructions
 import sim_logging
+
 
 
 def usage():
@@ -58,7 +60,7 @@ def checkFileExists(i_filename):
 
 
 def main(argv):
-    l_test = "ALL"
+    l_test = "SEDIS_2_0"
     l_enable_extras = False
     simlog = sim_logging.SIMLOG()
 
@@ -474,6 +476,53 @@ def main(argv):
         del trial3_2_obj_intermediate_file, update_file_required, map_new, original_map
         simlog.info("---------------------------------------------------------------------------------------------\n\n")
 #####################################################################################################################
+
+#####################################################################################################################
+    # Generate SEDIS_2_0
+    if l_test == "ALL" or l_test == "SEDIS_2_0":
+        simlog.info(
+            "------------------------------------------------------------------------------------------------")
+        simlog.info("Start processing SEDIS_2_0")
+        map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        i_sedis_2_0 = sedis_2_0.SEDIS_2_0(map)
+        sedis_2_0_file = argv[0].rsplit('.')[0] + '_SEDIS_2_0.s'
+        sedis_2_0_file_objdump = argv[0].rsplit('.')[0] + '_SEDIS_2_0.objdump'
+        with open(sedis_2_0_file, 'w') as filehandle:
+            for listitem in i_sedis_2_0.new_asm_file:
+                filehandle.write('%s\n' % listitem)
+        compileUtil.compile_s(sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
+
+        ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
+        update_file_required = True
+        # loop until we get the same signature values
+        while update_file_required:
+            sedis_2_0_s_intermediate_file = utils.readfile(sedis_2_0_file)
+            sedis_2_0_obj_intermediate_file = utils.readfile(sedis_2_0_file.split(".s")[0] + ".objdump")
+            sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file = i_sedis_2_0.remove_signature_checking(
+                sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file)
+            map_new = utils.ControlFlowMapRevised(sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file)
+            #map_new = i_sedis_2_0.update_opcodes(map, map_new)
+            i_sedis_2_0_new = sedis_2_0.SEDIS_2_0(map_new, i_generate_signature_only=True)
+            # We have old and new signatures in i_trial2 and i_trial2_new respectively.
+            update_file_required = trial2.update_signature(i_sedis_2_0, i_sedis_2_0_new, sedis_2_0_file)
+            compileUtil.compile_s(
+                sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
+
+            i_sedis_2_0 = i_sedis_2_0_new
+            map = map_new
+
+        # Get the memory_size of the original and modified file and find it's diff
+        new_map = utils.ControlFlowMapRevised(utils.readfile(sedis_2_0_file), utils.readfile(sedis_2_0_file_objdump),
+                                              simlog=simlog)
+        utils.get_memory_size_info(map, new_map, simlog=simlog)
+
+        #del i_sedis_2_0, i_sedis_2_0_new, new_map, map, map_new, trial2_s_intermediate_file, sedis_2_0_obj_intermediate_file
+        #del sedis_2_0_file, sedis_2_0_file_objdump, update_file_required
+        simlog.info("Finished processing SEDIS_2_0")
+        simlog.info(
+            "---------------------------------------------------------------------------------------------\n\n")
+    #####################################################################################################################
+
 
     # Delete the unnecessary .o .objdump .readelf file
     if not l_enable_extras:
