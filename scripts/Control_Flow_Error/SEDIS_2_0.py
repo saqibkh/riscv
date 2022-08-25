@@ -22,7 +22,8 @@ import random
 # This changes the value of C_sig stored in s11 to be equal to the R_sig of the successor block.
 #
 # Once the program execution reaches the correct signature block, we will load the expected signature in this case the
-# R_sig into s10, and then XOR with s11. If the control flow was correct, both s10 and s11 will hold the same R_sig
+# R_sig into s10, and then XOR with s11 (Updated to use XORI instruction as it replaces LI+XOR).
+# If the control flow was correct, both s10 and s11 will hold the same R_sig
 # value, thus resulting in a zero. Any value besides a zero must trigger an exception as there has been a control flow
 # error.
 #
@@ -276,7 +277,7 @@ class SEDIS_2_0:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\t' + new_line)
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
+                                                 str(int(self.temp_sig[i_block][0],16)) + "#" + self.temp_sig[i_block][0])
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
@@ -285,7 +286,7 @@ class SEDIS_2_0:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '.T' + str(i_block) + ":")
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
+                                                 str(int(self.temp_sig[i_block][1],16)) + "#" + self.temp_sig[i_block][1])
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
@@ -347,9 +348,25 @@ class SEDIS_2_0:
         for i in range(len(self.original_map.blocks)):
             if len(self.original_map.blocks[i].next_block_id) == 0:
                 t_sig = "0x0"
-            else:
+            elif len(self.original_map.blocks[i].next_block_id) == 1:
                 t_sig = hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
                             int(self.compile_time_sig[i], 16))
+            elif len(self.original_map.blocks[i].next_block_id) == 2:
+                i_current_block = i
+                if i_current_block+self.original_map.blocks[i].next_block_id[0] == i_current_block+1:
+                    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
+                               int(self.compile_time_sig[i], 16)),
+                             hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
+                                 int(self.compile_time_sig[i], 16))]
+                else:
+                    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
+                                 int(self.compile_time_sig[i], 16)),
+                             hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
+                                 int(self.compile_time_sig[i], 16))]
+
+            else:
+                self.simlog.error("It is not possible to have more than 2 outgoing branch from a node")
+                raise Exception
             self.temp_sig.append(t_sig)
 
     def get_matching_asm_line_using_objdump_line(self, i_line):
