@@ -10,17 +10,19 @@ import random
 #    branch instruction at end.
 # 2) Random signature (R_sig) assigned at compile time, which will also act as the expected signature.
 #
-# Both signatures will be 16-bits(4 bytes) long. (Since load immediate(LI) has limited bandwidth)
+# Both signatures will be 8-bits long. (since xori can take in 12 bits in the 'imm' field)
+#           Note: This is much more efficient than having LI (load immediate) followed by a XOR Operation
+#
 #
 # The initial block will have both C_sig set to 0 at the start of the block. Csig is stored in s11
 # As we being executing the instructions in block-0, we will calculate the C_sig by XOR'ing instruction opcodes, and
 # storing the result in s11.
 # If the final instruction is not a conditional branch (i.e. is either an unconditional branch or not-a-branch
 # instruction, then C_sig is XOR'ed with temporary signature (T_sig) defined as C_sig XOR R_sig_successor.
-# This changes the value of C_sig stored in s10 to be equal to the R_sig of the successor block.
+# This changes the value of C_sig stored in s11 to be equal to the R_sig of the successor block.
 #
 # Once the program execution reaches the correct signature block, we will load the expected signature in this case the
-# R_sig into s11, and then XOR with s10. If the control flow was correct, both s10 and s11 will hold the same R_sig
+# R_sig into s10, and then XOR with s11. If the control flow was correct, both s10 and s11 will hold the same R_sig
 # value, thus resulting in a zero. Any value besides a zero must trigger an exception as there has been a control flow
 # error.
 #
@@ -35,11 +37,13 @@ class SEDIS_2_0:
         self.simlog = i_map.simlog
 
         # Length of signature in bytes
+        # 2-bytes  =  8  bits
+        # 3-bytes  = 12  bits
         # 4-bytes  = 16  bits
         # 8-bytes  = 32  bits
         # 16-bytes = 64  bits
         # 32-bytes = 128 bits
-        self.length_signature = 16
+        #self.length_signature = 16
 
         self.original_map = i_map
 
@@ -98,7 +102,8 @@ class SEDIS_2_0:
                 i_line_asm = i_line_asm.split('\t', 1)[1]
                 if not i_line_asm.startswith('.'):
                     if utils.is_branch_instruction(i_line_asm) or \
-                            i_line_asm.startswith('li\ts10,'):
+                            i_line_asm.startswith('li\ts10,') or \
+                            i_line_asm.startswith('xori\ts11,s11,'):
                         # Get the first instruction in the next block for comparison
                         try:
                             i_line_block_obj = self.original_map.blocks[i_block].entries[0]
@@ -112,6 +117,17 @@ class SEDIS_2_0:
                                         i_line_block_asm[i]:
                                     block_found = True
                                     break
+                            # It is possible that the 2nd instruction was also added as part of SEDIS, thus
+                            # check the 3rd instruction
+                            if not block_found:
+                                i_line_asm = self.original_map.file_asm[i_line_num_new_asm_file + 2].split('\t', 1)[1]
+                                for i in range(len(i_line_block_asm)):
+                                    if self.original_map.file_asm[i_line_num_new_asm_file + 2].split('\t', 1)[1] in \
+                                            i_line_block_asm[i]:
+                                        block_found = True
+                                        i_line_num_new_asm_file += 1
+                                        break
+
                         except Exception as e:
                             # unexpected line encountered
                             i_line_num_new_asm_file += 1
@@ -129,18 +145,14 @@ class SEDIS_2_0:
                 # All other blocks have at least one incoming edge
                 else:
                     # If this isn't the first basic block, then it must have a predecessor block
-                    # and that block must have set the Csig and Tsig. Therefore calculate
-                    # the new signature as Csig XOR Tsig, which must be equal to Rsig
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
-                    i_line_num_new_asm_file += 1
+                    # and that block must have set the Csig as Csig XOR Tsig ==> Rsig.
 
                     # Load expected random signature value into register s10
                     i_random_signature = self.random_sig[self.original_map.blocks[i_block].id]
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + i_random_signature)
+                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
+                                             str(int(i_random_signature,16)) + "#" + i_random_signature)
                     i_line_num_new_asm_file += 1
                     # Check the expected value
-                    self.new_asm_file.insert(i_line_num_new_asm_file, '\txor\ts11,s11,s10')
-                    i_line_num_new_asm_file += 1
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\ts11,' + utils.exception_handler_address)
                     i_line_num_new_asm_file += 1
 
@@ -148,8 +160,7 @@ class SEDIS_2_0:
                 while inst < len(self.original_map.blocks[i_block].entries):
 
                     # Get the next set of instructions to load from memory
-                    l_remaining_opcode_length = self.get_opcode_length_to_jump_signature_length(inst, i_block,
-                                                                                                self.length_signature)
+                    l_remaining_opcode_length = self.get_opcode_length_to_jump_signature_length(inst, i_block, 16)
 
                     # When all possible instructions have been accounted for then break this while loop
                     if l_remaining_opcode_length == 0:
@@ -241,15 +252,20 @@ class SEDIS_2_0:
 
                 # We don't need to do anything if we are on the last block of the program
                 if len(self.original_map.blocks[i_block].next_block_id) != 0:
+
                     # If the final instruction in this block is a load/store, arithmetic, or unconditional branch
                     # then we need to simply load Tsig into s10
+
                     last_line = self.new_asm_file[i_line_num_new_asm_file].strip()
                     if utils.is_unconditional_branch_instruction(last_line) or \
                             utils.is_arithmetic_instruction(last_line) or \
                             utils.is_load_store_instruction(last_line) or \
                             last_line.startswith("."): # If it is not a branch instruction then we have already
                                                        # reached the function declaration of the next block.
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.temp_sig[i_block]))
+                        self.new_asm_file.insert(i_line_num_new_asm_file,
+                                                '\tandi\ts11,s11,255 #0xFF is a mask')
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
+                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
 
                     # The final instruction is a conditional branch instruction, which needs to be processed
                     # differently.
@@ -259,16 +275,22 @@ class SEDIS_2_0:
                         new_line += ',.T' + str(i_block)
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\t' + new_line)
                         i_line_num_new_asm_file += 1
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.temp_sig[i_block]))
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
+                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tj\t' + str(last_line.split(',')[-1]))
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '.T' + str(i_block) + ":")
                         i_line_num_new_asm_file += 1
-                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tli\ts10,' + str(self.temp_sig[i_block]))
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
+                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
+                        i_line_num_new_asm_file += 1
+                        self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
                         del self.new_asm_file[i_line_num_new_asm_file]
-                        i_line_num_new_asm_file -= 2
+                        i_line_num_new_asm_file -= 3
 
                     else:
                         self.simlog.error("Unrecognized instruction: " + str(last_line))
@@ -295,7 +317,7 @@ class SEDIS_2_0:
                     break
 
                 sig = self.original_map.blocks[i].opcode[j]
-                if len(compound_sig) + len(sig) <= self.length_signature:
+                if len(compound_sig) + len(sig) <= 16:
                     compound_sig = sig + compound_sig
                     j = j + 1
                 else:
@@ -306,14 +328,17 @@ class SEDIS_2_0:
             if compound_sig != '':
                 cum_sig = hex(int(cum_sig, 16) ^ int(compound_sig, 16))
                 compound_sig = ''
-            # Finally add the cum_sig back to the list of compile time signatures (only store the last 16 bits (4-bytes)
-            cum_sig = '0x' + cum_sig[-4:]
+            # Finally add the cum_sig back to the list of compile time signatures (only store the last 8 bits)
+            if len(cum_sig) > 4:
+                cum_sig = '0x' + cum_sig[-2:]
+
             self.compile_time_sig.append(cum_sig)
         del i, j, cum_sig, sig, compound_sig
 
         # 2. Assign random signature (R_sig)
+        random.seed(159357)
         for i in range(len(self.original_map.blocks)):
-            returnVal = "0x" + hex(random.sample(range(1, len(self.original_map.blocks) * 65421), 1)[0])[-4:]
+            returnVal = "0x" + hex(random.sample(range(1, len(self.original_map.blocks) * 65421), 1)[0])[-2:]
             self.random_sig.append(returnVal)
 
         # Calculate the temporary signature (T_sig).

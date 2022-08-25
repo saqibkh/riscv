@@ -493,7 +493,7 @@ def main(argv):
         compileUtil.compile_s(sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
 
         ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
-        update_file_required = True
+        update_file_required = False
         # loop until we get the same signature values
         while update_file_required:
             sedis_2_0_s_intermediate_file = utils.readfile(sedis_2_0_file)
