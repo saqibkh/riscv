@@ -493,23 +493,40 @@ def main(argv):
         compileUtil.compile_s(sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
 
         ## Re-read the <test>_intermediate_trial2 objdump and .s file and form the Control Flow Graph again
-        update_file_required = False
+        update_file_required = True
         # loop until we get the same signature values
         while update_file_required:
             sedis_2_0_s_intermediate_file = utils.readfile(sedis_2_0_file)
             sedis_2_0_obj_intermediate_file = utils.readfile(sedis_2_0_file.split(".s")[0] + ".objdump")
             sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file = i_sedis_2_0.remove_signature_checking(
                 sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file)
+
+            #################################################################################
+            # This is only for debug purposes and can be removed after all fixes are in place.
+            # Write the .s and .objdump file to debug the difference
+            #i_intermediate_s_file = sedis_2_0_file.rsplit(".s")[0] + "_intermediate.s"
+            #with open(i_intermediate_s_file, 'w') as filehandle:
+            #    for listitem in sedis_2_0_s_intermediate_file:
+            #        filehandle.write('%s\n' % listitem)
+            #i_intermediate_objdump_file = sedis_2_0_file.rsplit(".s")[0] + "_intermediate.objdump"
+            #with open(i_intermediate_objdump_file, 'w') as filehandle:
+            #    for listitem in sedis_2_0_obj_intermediate_file:
+            #        filehandle.write('%s\n' % listitem)
+            #################################################################################
+            #################################################################################
+
             map_new = utils.ControlFlowMapRevised(sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file)
+            map_new = sedis_2_0.update_blocks(map, map_new)
             #map_new = i_sedis_2_0.update_opcodes(map, map_new)
             i_sedis_2_0_new = sedis_2_0.SEDIS_2_0(map_new, i_generate_signature_only=True)
-            # We have old and new signatures in i_trial2 and i_trial2_new respectively.
-            update_file_required = trial2.update_signature(i_sedis_2_0, i_sedis_2_0_new, sedis_2_0_file)
-            compileUtil.compile_s(
-                sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
+            # We have old and new signatures in sedis_2_0 and sedis_2_0_new respectively.
+            update_file_required = sedis_2_0.update_signature(i_sedis_2_0, i_sedis_2_0_new, sedis_2_0_file)
+            compileUtil.compile_s(sedis_2_0_file)  # Compile the newly created assembly file to generate a static binary
 
             i_sedis_2_0 = i_sedis_2_0_new
             map = map_new
+
+
 
         # Get the memory_size of the original and modified file and find it's diff
         new_map = utils.ControlFlowMapRevised(utils.readfile(sedis_2_0_file), utils.readfile(sedis_2_0_file_objdump),

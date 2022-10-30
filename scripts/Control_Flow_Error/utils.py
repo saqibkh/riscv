@@ -17,6 +17,9 @@ import function_map
 from os import path
 
 signature_checking_registers = ['t6', 's11', 's10']
+additional_functions_for_signature_checking = ['.T0', '.T1', '.T2', '.T3', '.T4', '.T5', '.T6', '.T7', '.T8', '.T9',
+                                               '.T10', '.T11', '.T12', '.T13', '.T14', '.T15', '.T16', '.T17', '.T18',
+                                               '.T19']
 
 # This address is where the program execution will jmp to in case the software signatures don't match
 exception_handler_address = '100'  # --> 0x64
@@ -26,6 +29,17 @@ exception_handler_address = '100'  # --> 0x64
 i_execution_time_loop = 10
 
 ''' Commonly used functions will be defined here'''
+
+
+def is_signature_checking_function(i_line):
+    if "<.T" not in i_line:
+        return False
+
+    for i in range(len(additional_functions_for_signature_checking)):
+        i_keyword = "<" + additional_functions_for_signature_checking[i] + ">"
+        if i_keyword in i_line:
+            return True
+    return False
 
 
 def checkFileExists(i_filename):
@@ -510,6 +524,10 @@ def is_instruction_signature_checking_asm(i_line):
     i_line = i_line.split('\t')[-1]
     i_params = i_line.split(',')
     for i in range(len(i_params)):
+        # Example bne a4,a5,.T3
+        if i_params[i].startswith(".T"):
+            return True
+
         for j in range(len(signature_checking_registers)):
             if signature_checking_registers[j] == i_params[i]:
                 return True
@@ -656,29 +674,29 @@ def get_matching_objdump_line_using_asm_line(i_instruction_map, i_line):
 def get_opposite_branch_instruction(i_line):
     inst = i_line.split('\t')[0]
     if inst == 'bne':
-        return('beq')
+        return ('beq')
     elif inst == 'beq':
-        return('bne')
+        return ('bne')
 
     elif inst == 'bge':
-        return('blt')
+        return ('blt')
     elif inst == 'blt':
-        return('bge')
+        return ('bge')
 
     elif inst == 'bgt':
-        return('ble')
+        return ('ble')
     elif inst == 'ble':
-        return('bgt')
+        return ('bgt')
 
     elif inst == 'bnez':
-        return('beqz')
+        return ('beqz')
     elif inst == 'beqz':
-        return('bnez')
+        return ('bnez')
 
     elif inst == 'bltz':
-        return('bgez')
+        return ('bgez')
     elif inst == 'bgez':
-        return('bltz')
+        return ('bltz')
 
     else:
         self.simlog.error("Unrecognized branch instruction: " + str(i_line))
@@ -849,6 +867,7 @@ class ControlFlowMapRevised:
         # 4. Process the blocks within each block
         for i in range(len(self.functions.f_names)):
             self.generate_extended_blocks()
+
         # Fix the IDs of each block as we might have inserted new blocks
         for i in range(len(self.blocks)):
             self.blocks[i].id = i
@@ -1087,7 +1106,8 @@ class ControlFlowMapRevised:
                     # Keep adding lines to the function until a new function starts
                     j += 1
                     while 1:
-                        # line = self.f_obj[j]
+
+                        line = self.file_obj[j]  # This is a debug variable and can be commented out
                         if not self.file_obj[j].startswith('   '):
                             self.functions.f_instructions.append(function)
                             return

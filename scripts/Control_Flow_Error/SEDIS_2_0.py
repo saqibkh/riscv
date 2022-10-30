@@ -62,11 +62,35 @@ class SEDIS_2_0:
         self.instruction_map = [[]]
         self.new_asm_file = self.original_map.file_asm
 
+        if i_generate_signature_only:
+            self.remove_signature_checking_extended()
+
         self.process_blocks()
+
+        # If i_generate_signature_only is True, then don't proceed any further
+        if i_generate_signature_only:
+            return
+
         utils.generate_instruction_mapping(self)
 
         # Generate the new assembly file
         self.generate_SEDIS_2_0_file_updated()
+
+    # This function clears the objdump file to remove all "00000000000xxxxx <.Tx>:" and the blank line before it
+    def clear_objdump_file(self, i_objdump_file):
+        i_new_objdump_file = []
+        for i in range(len(i_objdump_file)):
+            i_line = i_objdump_file[i]
+            print(str(i))
+            if (i_line.startswith("000000") ) and (('<.T') in i_line):
+                if i_new_objdump_file[-1] is ' ':
+                    del i_new_objdump_file[-1]
+                else:
+                    self.simlog.error("The last element in the objdump file must be a blank line")
+                    raise Exception
+            else:
+                i_new_objdump_file.append(i_line)
+        return i_new_objdump_file
 
     def generate_SEDIS_2_0_file_updated(self):
         i_block = 0
@@ -151,7 +175,8 @@ class SEDIS_2_0:
                     # Load expected random signature value into register s10
                     i_random_signature = self.random_sig[self.original_map.blocks[i_block].id]
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                             str(int(i_random_signature,16)) + "#" + i_random_signature)
+                                             str(int(i_random_signature,16)) + "#" + i_random_signature +
+                                             " #This is the Rsig for block-" + str(i_block))
                     i_line_num_new_asm_file += 1
                     # Check the expected value
                     self.new_asm_file.insert(i_line_num_new_asm_file, '\tbnez\ts11,' + utils.exception_handler_address)
@@ -266,7 +291,8 @@ class SEDIS_2_0:
                         self.new_asm_file.insert(i_line_num_new_asm_file,
                                                 '\tandi\ts11,s11,255 #0xFF is a mask')
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block])
+                                                 str(int(self.temp_sig[i_block],16)) + "#" + self.temp_sig[i_block] +
+                                                 " #This is the Tsig for block-" + str(i_block))
 
                     # The final instruction is a conditional branch instruction, which needs to be processed
                     # differently.
@@ -277,7 +303,8 @@ class SEDIS_2_0:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\t' + new_line)
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                                 str(int(self.temp_sig[i_block][0],16)) + "#" + self.temp_sig[i_block][0])
+                                                 str(int(self.temp_sig[i_block][1],16)) + "#" + self.temp_sig[i_block][1] +
+                                                 " #This is the Tsig for block-" + str(i_block) + "_0")
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
@@ -286,7 +313,8 @@ class SEDIS_2_0:
                         self.new_asm_file.insert(i_line_num_new_asm_file, '.T' + str(i_block) + ":")
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\txori\ts11,s11,' +
-                                                 str(int(self.temp_sig[i_block][1],16)) + "#" + self.temp_sig[i_block][1])
+                                                 str(int(self.temp_sig[i_block][0],16)) + "#" + self.temp_sig[i_block][0] +
+                                                 " #This is the Tsig for block-" + str(i_block) + "_1")
                         i_line_num_new_asm_file += 1
                         self.new_asm_file.insert(i_line_num_new_asm_file, '\tandi\ts11,s11,255 #0xFF is a mask')
                         i_line_num_new_asm_file += 1
@@ -365,8 +393,14 @@ class SEDIS_2_0:
                                  int(self.compile_time_sig[i], 16))]
 
             else:
-                self.simlog.error("It is not possible to have more than 2 outgoing branch from a node")
+                self.simlog.error("Not supported yet")
                 raise Exception
+                # if the final instruction is a return instruction, then we can potentially have many outgoing branches
+                #t_sig = []
+                #for j in range(len(self.original_map.blocks[i].next_block_id)):
+                #    t_sig.append(hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[j]], 16) ^
+                #                int(self.compile_time_sig[i], 16)))
+
             self.temp_sig.append(t_sig)
 
     def get_matching_asm_line_using_objdump_line(self, i_line):
@@ -435,7 +469,84 @@ class SEDIS_2_0:
             i_inst += 1
         return num_inst
 
+    # Just remove all instructions that accesses the signature checking registers
+    # like s10/s11/t6 etc from the processed blocks
+    def remove_signature_checking_extended(self):
+        i = 0
+        j = 0
+        while i < (len(self.original_map.blocks)):
+            j = 0
+            while j < (len(self.original_map.blocks[i].entries)):
+                i_inst = self.original_map.blocks[i].entries[j]
+                if utils.is_instruction_signature_checking_asm(i_inst):
+                    del self.original_map.blocks[i].entries[j]
+                    del self.original_map.blocks[i].memory[j]
+                    del self.original_map.blocks[i].opcode[j]
+                    j -= 1
+                j += 1
+            i += 1
+        return
+
     def remove_signature_checking(self, i_s_file, i_objdump_file):
+        # Cleanup the .s file
+        i = 0
+        while i < len(i_s_file):
+            l_found = False
+            i_line = i_s_file[i]
+            if i_line.startswith('\t'):
+                i_line = i_line.strip()
+                if not i_line.startswith('.'):
+                    #if utils.is_instruction_signature_checking_asm(i_line):
+                    if i_line == 'bnez\ts11,100': # This is the signature check to see if the Csig and Rsig are equal. This can safely be remove
+                        i_s_file.remove(i_s_file[i])
+                        i -= 1
+            # User added function calls all starts with .T (example .T1, .T2 etc)
+            elif i_line.startswith('.T'):
+                i_line = i_line.strip()
+                i_s_file.remove(i_s_file[i])
+                i -= 1
+            i += 1
+
+        # Cleanup the .objdump file
+        i = 0
+        i_excpt_addr = hex(int(utils.exception_handler_address, 10)).split('0x')[-1]
+        while i < len(i_objdump_file):
+            i_line = i_objdump_file[i]
+
+            if i_line.startswith("   "):
+                address, opcode, instruction = i_objdump_file[i].split('\t', 2)
+                l_params = instruction.split('\t')[-1]
+                #if utils.is_signature_checking_register(l_params):
+                #    i_objdump_file.remove(i_objdump_file[i])
+                #    i -= 1
+
+                # We also need to remove the j to exception handler
+                l_params = (l_params.split(' ')[0]).split(",")
+                for j in range(len(l_params)):
+                    if (i_excpt_addr == l_params[j]) and (utils.is_branch_instruction(instruction.split('\t')[0])):
+                        i_objdump_file.remove(i_objdump_file[i])
+                        i_objdump_file.remove(i_objdump_file[i-1])
+                        i -= 2
+
+            if utils.is_signature_checking_function(i_line):
+                # Case-1: Function declaration (00000000000102f2 <.T3>:)
+                if i_line.startswith('00000'):
+                    del i_objdump_file[i]
+                    del i_objdump_file[i - 1]
+                    i -= 2
+                # Case-2: Instruction (   102e4:       00e7c763                blt     a5,a4,102f2 <.T3>)
+                elif i_line.startswith("   "):
+                    i_objdump_file.remove(i_objdump_file[i])
+                    i -= 1
+                else:
+                    self.simlog.error("unrecognized input: " + str(i_line))
+                    raise Exception
+            i += 1
+
+        return i_s_file, i_objdump_file
+
+    def remove_signature_checking_old(self, i_s_file, i_objdump_file):
+        # .s file cleanup
         i = 0
         while i < len(i_s_file):
             l_found = False
@@ -446,6 +557,11 @@ class SEDIS_2_0:
                     if utils.is_instruction_signature_checking_asm(i_line):
                         i_s_file.remove(i_s_file[i])
                         i -= 1
+            # User added function calls all starts with .T (example .T1, .T2 etc)
+            elif i_line.startswith('.T'):
+                i_line = i_line.strip()
+                i_s_file.remove(i_s_file[i])
+                i -= 1
             i += 1
 
         # Just remove all lines from the objdump file that access signature checking registers like s11/s10/t6
@@ -453,6 +569,7 @@ class SEDIS_2_0:
         i_excpt_addr = hex(int(utils.exception_handler_address, 10)).split('0x')[-1]
         while i < len(i_objdump_file):
             i_line = i_objdump_file[i]
+
             if i_line.startswith("   "):
                 address, opcode, instruction = i_objdump_file[i].split('\t', 2)
                 l_params = instruction.split('\t')[-1]
@@ -466,6 +583,21 @@ class SEDIS_2_0:
                     if (i_excpt_addr == l_params[j]) and (utils.is_branch_instruction(instruction.split('\t')[0])):
                         i_objdump_file.remove(i_objdump_file[i])
                         i -= 1
+
+            if utils.is_signature_checking_function(i_line):
+                # Case-1: Function declaration (00000000000102f2 <.T3>:)
+                if i_line.startswith('00000'):
+                    del i_objdump_file[i]
+                    del i_objdump_file[i-1]
+                    i -= 2
+                # Case-2: Instruction (   102e4:       00e7c763                blt     a5,a4,102f2 <.T3>)
+                elif i_line.startswith("   "):
+                    i_objdump_file.remove(i_objdump_file[i])
+                    i -= 1
+                else:
+                    self.simlog.error("unrecognized input: " + str(i_line))
+                    raise Exception
+
             i += 1
         return i_s_file, i_objdump_file
 
@@ -506,3 +638,57 @@ class SEDIS_2_0:
                             #print("Some how we updated the same opcode in two places. Please check manually")
                             #raise Exception
         return i_map
+
+# This function searches the .s file and looks for different Tsig values within old and new objections.
+# If there is a difference in Tsig then the file is updated accordingly
+def update_signature(i_obj_old, i_obj_new, i_file):
+
+        file = open(i_file, 'r')
+        i_asm_file = file.read()
+        file.close()
+
+        if len(i_obj_old.temp_sig) != len(i_obj_new.temp_sig):
+            self.simlog.error("The length of Tsig must match in the old and new object")
+            raise Exception
+
+        for i in range(len(i_obj_old.temp_sig)):
+            if isinstance(i_obj_old.temp_sig[i], str):
+                i_old_Tsig = i_obj_old.temp_sig[i]
+                i_new_Tsig = i_obj_new.temp_sig[i]
+            else:
+                i_old_Tsig = i_obj_old.temp_sig[i][0]
+                i_new_Tsig = i_obj_new.temp_sig[i][0]
+                if i_old_Tsig != i_new_Tsig:
+                    raise Exception #TODO: I want to see how this is handles. Remove exception later if all works well
+
+            # No need to do anything if the signatures are already same
+            if i_old_Tsig == i_new_Tsig:
+                pass
+            # Update the .s file defined within i_file
+            else:
+                i_old_Tsig_in_decimal = int(i_old_Tsig.split('0x')[-1], 16)
+                i_obj_to_replace = "\txori\ts11,s11," + str(i_old_Tsig_in_decimal) + "#" + str(i_old_Tsig) + \
+                                   " #This is the Tsig for block-" + str(i)
+
+                i_new_Tsig_in_decimal = int(i_new_Tsig.split('0x')[-1], 16)
+                i_new_obj_to_add_to_file = "\txori\ts11,s11," + str(i_new_Tsig_in_decimal) + "#" + str(i_new_Tsig) + \
+                                   " #This is the updated Tsig for block-" + str(i)
+
+                i_asm_file = i_asm_file.replace(i_obj_to_replace, i_new_obj_to_add_to_file)
+
+        file = open(i_file, 'w')
+        file.write(i_asm_file)
+        file.close()
+
+
+def update_blocks(i_old_map, i_new_map):
+    if len(i_old_map.blocks) != len(i_new_map.blocks):
+        self.simlog.error("Both maps should have the same amount of blocks")
+        raise Exception
+
+    for i in range(len(i_old_map.blocks)):
+        i_new_map.blocks[i].next_block_id = i_old_map.blocks[i].next_block_id
+        i_new_map.blocks[i].next_block_address = i_old_map.blocks[i].next_block_address
+        i_new_map.blocks[i].previous_block_id = i_old_map.blocks[i].previous_block_id
+        i_new_map.blocks[i].previous_block_address = i_old_map.blocks[i].previous_block_address
+    return i_new_map
