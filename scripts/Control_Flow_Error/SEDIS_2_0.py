@@ -381,16 +381,17 @@ class SEDIS_2_0:
                             int(self.compile_time_sig[i], 16))
             elif len(self.original_map.blocks[i].next_block_id) == 2:
                 i_current_block = i
-                if i_current_block+self.original_map.blocks[i].next_block_id[0] == i_current_block+1:
-                    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
-                               int(self.compile_time_sig[i], 16)),
-                             hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
-                                 int(self.compile_time_sig[i], 16))]
-                else:
-                    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
-                                 int(self.compile_time_sig[i], 16)),
-                             hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
-                                 int(self.compile_time_sig[i], 16))]
+
+                #if i_current_block+self.original_map.blocks[i].next_block_id[0] == i_current_block+1:
+                #    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
+                #               int(self.compile_time_sig[i], 16)),
+                #             hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
+                #                 int(self.compile_time_sig[i], 16))]
+                #else:
+                t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[1]], 16) ^
+                             int(self.compile_time_sig[i], 16)),
+                         hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
+                             int(self.compile_time_sig[i], 16))]
 
             else:
                 self.simlog.error("Not supported yet")
