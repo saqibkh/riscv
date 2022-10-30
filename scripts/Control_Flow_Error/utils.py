@@ -832,7 +832,8 @@ class ControlFlowMapRevised:
     #
     # Inputs: f_asm and f_obj objects
     #         enable_functionMap = Creates a map of the functions within this program
-    def __init__(self, i_asm, i_obj, enable_functionMap=False, C_executable_File=None, simlog=None):
+    # Currently i_special is only used for SEDIS2_0 to not divide block with where branch points to a signature
+    def __init__(self, i_asm, i_obj, enable_functionMap=False, C_executable_File=None, simlog=None, i_special=None):
         self.file_asm = []
         self.file_obj = i_obj
         self.blocks = []
@@ -866,7 +867,7 @@ class ControlFlowMapRevised:
         ##
         # 4. Process the blocks within each block
         for i in range(len(self.functions.f_names)):
-            self.generate_extended_blocks()
+            self.generate_extended_blocks(i_special)
 
         # Fix the IDs of each block as we might have inserted new blocks
         for i in range(len(self.blocks)):
@@ -1027,7 +1028,7 @@ class ControlFlowMapRevised:
                 else:
                     j += 1
 
-    def generate_extended_blocks(self):
+    def generate_extended_blocks(self, i_special):
         # Definition: This function further generates block by breaking down
         #             existing blocks because there might be a jump instruction that lands in the middle
         #             of the block (i.e. final instruction in the block will not be a branch/jump instruction)
@@ -1053,6 +1054,18 @@ class ControlFlowMapRevised:
                             break
                         # Break the block
                         else:
+
+                            # If the jump instruction points to a xori s11,s11,0xXX, that is in middle of signature
+                            # checking, then don't break the block. For example:
+                            #<.T4 >
+                            #        xori s11,s11,179
+                            #        andi s11,s11,255
+                            #        xori s11,s11,176 <-- if it points here then don't break
+                            if (i_special == "SEDIS2_0") and (k==2):
+                                i_previous_line = self.blocks[j].entries[k-1]
+                                if "andi\ts11,s11,255" in i_previous_line:
+                                    break
+
                             block = Block(self.blocks[j].func_name, j + 1)
 
                             while len(self.blocks[j].memory) != k:

@@ -515,7 +515,7 @@ def main(argv):
             #################################################################################
             #################################################################################
 
-            map_new = utils.ControlFlowMapRevised(sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file)
+            map_new = utils.ControlFlowMapRevised(sedis_2_0_s_intermediate_file, sedis_2_0_obj_intermediate_file, i_special="SEDIS2_0")
             map_new = sedis_2_0.update_blocks(map, map_new)
             #map_new = i_sedis_2_0.update_opcodes(map, map_new)
             i_sedis_2_0_new = sedis_2_0.SEDIS_2_0(map_new, i_generate_signature_only=True)

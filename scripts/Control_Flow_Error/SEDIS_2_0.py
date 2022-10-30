@@ -2,6 +2,7 @@ import utils
 import fileinput
 from os import path
 import random
+import sim_logging
 
 ###################################################################################################################
 #
@@ -382,6 +383,7 @@ class SEDIS_2_0:
             elif len(self.original_map.blocks[i].next_block_id) == 2:
                 i_current_block = i
 
+                # There is no need for the code below. Thus we have commented it out
                 #if i_current_block+self.original_map.blocks[i].next_block_id[0] == i_current_block+1:
                 #    t_sig = [hex(int(self.random_sig[self.original_map.blocks[i].next_block_id[0]], 16) ^
                 #               int(self.compile_time_sig[i], 16)),
@@ -684,7 +686,7 @@ def update_signature(i_obj_old, i_obj_new, i_file):
 
 def update_blocks(i_old_map, i_new_map):
     if len(i_old_map.blocks) != len(i_new_map.blocks):
-        self.simlog.error("Both maps should have the same amount of blocks")
+        print("Both maps should have the same amount of blocks")
         raise Exception
 
     for i in range(len(i_old_map.blocks)):
