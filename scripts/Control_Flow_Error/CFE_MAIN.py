@@ -484,6 +484,7 @@ def main(argv):
             "------------------------------------------------------------------------------------------------")
         simlog.info("Start processing SEDIS_2_0")
         map = utils.ControlFlowMapRevised(utils.readfile(file_s), utils.readfile(file_objdump), simlog=simlog)
+        old_map = map
         i_sedis_2_0 = sedis_2_0.SEDIS_2_0(map)
         sedis_2_0_file = argv[0].rsplit('.')[0] + '_SEDIS_2_0.s'
         sedis_2_0_file_objdump = argv[0].rsplit('.')[0] + '_SEDIS_2_0.objdump'
@@ -531,7 +532,7 @@ def main(argv):
         # Get the memory_size of the original and modified file and find it's diff
         new_map = utils.ControlFlowMapRevised(utils.readfile(sedis_2_0_file), utils.readfile(sedis_2_0_file_objdump),
                                               simlog=simlog)
-        utils.get_memory_size_info(map, new_map, simlog=simlog)
+        utils.get_memory_size_info(old_map, new_map, simlog=simlog)
 
         #del i_sedis_2_0, i_sedis_2_0_new, new_map, map, map_new, trial2_s_intermediate_file, sedis_2_0_obj_intermediate_file
         #del sedis_2_0_file, sedis_2_0_file_objdump, update_file_required

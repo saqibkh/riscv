@@ -84,7 +84,7 @@ class SEDIS_2_0:
             i_line = i_objdump_file[i]
             print(str(i))
             if (i_line.startswith("000000") ) and (('<.T') in i_line):
-                if i_new_objdump_file[-1] is ' ':
+                if i_new_objdump_file[-1] == ' ':
                     del i_new_objdump_file[-1]
                 else:
                     self.simlog.error("The last element in the objdump file must be a blank line")

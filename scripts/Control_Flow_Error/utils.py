@@ -412,7 +412,7 @@ def extract_function_names_asm(i_asm_file):
             continue
         else:
             line = i_asm_file[i]
-            if line is not '':
+            if line != '':
                 l_func_list.append(i_asm_file[i].strip()[:-1])
     return l_func_list
 
@@ -1146,7 +1146,7 @@ class ControlFlowMapRevised:
                 continue
             else:
                 line = i_asm[i]
-                if line is not '':
+                if line != '':
                     self.functions.f_names.append(i_asm[i].strip()[:-1])
         del i_asm
 

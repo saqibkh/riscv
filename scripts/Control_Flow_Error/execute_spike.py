@@ -197,7 +197,7 @@ def execute_spike_get_execution_time(i_executable_file):
     cmd = '/opt/riscv/bin/spike /opt/riscv/toolchain/riscv64-unknown-linux-gnu/bin/pk ' + i_executable_file
     child = pexpect.spawn(cmd)
 
-    while l_return is not '':
+    while l_return != '':
         child.expect(['\r\n', pexpect.EOF])
         l_return = (child.readline()).decode("utf-8")
         if "Total Execution time:" in l_return:
